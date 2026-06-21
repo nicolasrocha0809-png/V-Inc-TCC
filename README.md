@@ -15,8 +15,12 @@ Este repositório contém a versão de desenvolvimento do assistente virtual V-I
    `python -m venv .venv`
    `.\.venv\Scripts\Activate.ps1`
 3. Instale as dependências:
-   `pip requirements.txt`
-4. Crie um arquivo `.env` na raiz do projeto com a sua chave da Groq:
-   `CHAVE_GROQ=sua_chave_aqui`
-5. Execute o sistema:
-   `python login.py`
+   `pip install -r requirements.txt`
+   `pip install python-dotenv supabase bcrypt customtkinter`
+4. Crie um arquivo `.env` na raiz do projeto e configure as suas chaves e credenciais conforme o modelo abaixo:
+   ```env
+   CHAVE_GROQ=sua_chave_groq_aqui
+   SUPABASE_URL=sua_url_do_supabase_aqui
+   SUPABASE_KEY=sua_chave_anon_do_supabase_aqui
+   EMAIL_REMETENTE=seu_email_remetente_gmail_aqui
+   SENHA_REMETENTE=sua_senha_de_app_de_16_digitos_aqui
