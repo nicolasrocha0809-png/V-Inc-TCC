@@ -1,0 +1,17 @@
+# Ignorar o ambiente virtual
+.venv/
+
+# Ignorar o cofre de chaves
+.env
+
+# Ignorar arquivos de áudio temporários
+meu_audio.wav
+resposta.mp3
+
+# Ignorar lixo do Python
+__pycache__/
+
+# Ignorar modelos de IA e dados pesados
+data/
+*.npy
+*.pt
