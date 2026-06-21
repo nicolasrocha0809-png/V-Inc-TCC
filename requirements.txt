@@ -1,0 +1,9 @@
+pyttsx3
+SpeechRecognition
+PyAudio
+edge-tts
+pygame
+groq
+customtkinter
+python-dotenv
+openwakeword
