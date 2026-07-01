@@ -7,3 +7,6 @@ groq
 customtkinter
 python-dotenv
 openwakeword
+python-dotenv 
+supabase
+ bcrypt 
