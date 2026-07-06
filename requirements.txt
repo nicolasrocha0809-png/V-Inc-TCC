@@ -9,4 +9,4 @@ python-dotenv
 openwakeword
 python-dotenv 
 supabase
- bcrypt 
+bcrypt 

@@ -3,7 +3,7 @@ from groq import Groq
 
 
 # Substitua o texto abaixo pela sua chave real gerada no site (mantenha as aspas!)
-CHAVE_API = "CHAVE_GROQ"
+CHAVE_API = ""
 
 # Inicializa o cliente passando a sua chave
 cliente = Groq(api_key=CHAVE_API)
