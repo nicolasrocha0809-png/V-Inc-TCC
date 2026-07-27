@@ -1,0 +1,94 @@
+/* --- Estrutura e Container --- */
+QWidget {
+    background-color: transparent;
+}
+
+#login_card {
+    border-radius: 20px;
+    border: 1px solid #334155;
+    /* A cor de fundo será definida no seu tema (escuro.qss/claro.qss) */
+}
+
+/* --- Tipografia e Títulos (Forçando transparência) --- */
+QLabel {
+    background-color: transparent !important;
+    border: none;
+}
+
+#logo_login { 
+    font-size: 50px; 
+    margin-bottom: 10px; 
+    background-color: transparent !important;
+}
+
+#titulo_login { 
+    font-size: 26px; 
+    font-weight: bold; 
+    margin-bottom: 5px; 
+    background-color: transparent !important;
+}
+
+#subtitulo_login { 
+    font-size: 14px; 
+    margin-bottom: 20px; 
+    color: #94A3B8;
+    background-color: transparent !important;
+}
+
+/* Título das telas secundárias (Cadastro, Recuperação, etc.) */
+#titulo_tela {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    background-color: transparent !important;
+}
+
+#label_input { 
+    font-size: 13px; 
+    font-weight: 600; 
+    margin-top: 10px; 
+    margin-bottom: 5px; 
+    background-color: transparent !important;
+}
+
+/* --- Campos de Entrada --- */
+QLineEdit {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    font-size: 14px;
+}
+
+/* --- Botões --- */
+QPushButton {
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    border: none;
+}
+
+#btn_entrar {
+    font-size: 16px;
+    margin-top: 15px;
+}
+
+#btn_secundario {
+    background-color: transparent;
+    border: 1px solid #475569;
+}
+
+#btn_link {
+    background-color: transparent;
+    text-decoration: underline;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/* --- Status --- */
+#status_msg {
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 10px;
+    background-color: transparent !important;
+}

@@ -1,0 +1,10 @@
+{
+    "visual": {
+        "tema": "claro",
+        "tamanho_fonte": 14
+    },
+    "audio": {
+        "velocidade": 1.0,
+        "tom": 1.0
+    }
+}

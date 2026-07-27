@@ -1,0 +1,15 @@
+
+QWidget { background-color: #F1F5F9; color: #1E293B; }
+
+#sidebar { background-color: #E2E8F0; border-right-color: #CBD5E1; }
+#menu_btn { color: #1E293B; }
+#menu_btn:hover { background-color: #CBD5E1; }
+
+#login_card { background-color: #FFFFFF; border-color: #CBD5E1; }
+QLineEdit { background-color: #FFFFFF; color: #1E293B; border-color: #CBD5E1; }
+
+#btn_entrar { background-color: #3B82F6; color: #FFFFFF; }
+#btn_entrar:hover { background-color: #2563EB; }
+
+#subtitulo_login { color: #64748B; }
+#logo_login { color: #3B82F6; }
