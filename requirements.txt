@@ -7,3 +7,4 @@ groq
 customtkinter
 python-dotenv
 openwakeword
+PySide6
