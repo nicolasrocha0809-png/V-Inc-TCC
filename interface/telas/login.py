@@ -85,17 +85,25 @@ class LoginScreen(QWidget):
         self.txt_n_senha = QLineEdit(); self.txt_n_senha.setPlaceholderText("Senha"); self.txt_n_senha.setEchoMode(QLineEdit.Password)
         btn_salvar = QPushButton("Criar Conta"); btn_salvar.setObjectName("btn_entrar"); btn_salvar.clicked.connect(self.acao_cadastrar)
         btn_voltar = QPushButton("Voltar"); btn_voltar.setObjectName("btn_secundario"); btn_voltar.clicked.connect(self.criar_tela_login)
-        for w in [lbl_titulo, self.txt_n_email, self.txt_n_senha, btn_salvar, btn_voltar]: self.card_layout.addWidget(w)
+
+        self.lbl_status_cadastro = QLabel(""); self.lbl_status_cadastro.setObjectName("status_msg")
+
+        for w in [lbl_titulo, self.txt_n_email, self.txt_n_senha, btn_salvar, btn_voltar, self.lbl_status_cadastro]: 
+            self.card_layout.addWidget(w)
 
     def acao_cadastrar(self):
         email, senha = self.txt_n_email.text().strip(), self.txt_n_senha.text().strip()
+        if not email or not senha:
+            self.lbl_status_cadastro.setText("Preencha todos os campos.")
+            return
+            
         try:
             hash_s = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             self.supabase.table("usuarios").insert({"email": email, "senha_hash": hash_s}).execute()
             self.criar_tela_login()
         except Exception as e:
             print(f"DEBUG CADASTRO: {e}")
-            self.lbl_status.setText("Erro no cadastro.")
+            self.lbl_status_cadastro.setText("Erro de conexão.")
 
     def criar_tela_recuperacao(self):
         self.limpar_card()
@@ -115,17 +123,29 @@ class LoginScreen(QWidget):
         self.limpar_card()
         self.txt_cod = QLineEdit(); self.txt_cod.setPlaceholderText("Código recebido")
         btn_val = QPushButton("Validar"); btn_val.setObjectName("btn_entrar"); btn_val.clicked.connect(self.verificar_codigo)
-        self.card_layout.addWidget(self.txt_cod); self.card_layout.addWidget(btn_val)
+        
+        self.lbl_verificar_codigo = QLabel(""); self.lbl_verificar_codigo.setObjectName("status_msg")
+        
+        self.card_layout.addWidget(self.txt_cod)
+        self.card_layout.addWidget(btn_val)
+        self.card_layout.addWidget(self.lbl_verificar_codigo, alignment=Qt.AlignCenter)
 
     def verificar_codigo(self):
-        if self.txt_cod.text().strip() == self.codigo_verificacao: self.criar_tela_nova_senha()
-        else: self.lbl_status.setText("Código incorreto!")
+        if self.txt_cod.text().strip() == self.codigo_verificacao: 
+            self.criar_tela_nova_senha()
+        else: 
+            self.lbl_verificar_codigo.setText("Código incorreto!")
 
     def criar_tela_nova_senha(self):
         self.limpar_card()
         self.txt_n_senha = QLineEdit(); self.txt_n_senha.setPlaceholderText("Nova senha"); self.txt_n_senha.setEchoMode(QLineEdit.Password)
         btn_upd = QPushButton("Atualizar Senha"); btn_upd.setObjectName("btn_entrar"); btn_upd.clicked.connect(self.atualizar_senha_supabase)
-        self.card_layout.addWidget(self.txt_n_senha); self.card_layout.addWidget(btn_upd)
+        
+        self.lbl_atualizar_senha = QLabel(""); self.lbl_atualizar_senha.setObjectName("status_msg")
+        
+        self.card_layout.addWidget(self.txt_n_senha)
+        self.card_layout.addWidget(btn_upd)
+        self.card_layout.addWidget(self.lbl_atualizar_senha, alignment=Qt.AlignCenter)
 
     def atualizar_senha_supabase(self):
         try:
@@ -134,13 +154,19 @@ class LoginScreen(QWidget):
             self.criar_tela_login()
         except Exception as e:
             print(f"DEBUG ATUALIZAR: {e}")
-            self.lbl_status.setText("Erro ao atualizar.")
+            self.lbl_atualizar_senha.setText("Erro ao atualizar.")
 
     def disparar_email(self, dest, cod):
         try:
-            msg = MIMEMultipart(); msg['Subject'] = "V-Inc - Código"; msg['From'] = EMAIL_REMETENTE; msg['To'] = dest
+            msg = MIMEMultipart()
+            msg['Subject'] = "V-Inc - Código"
+            msg['From'] = EMAIL_REMETENTE
+            msg['To'] = dest
             msg.attach(MIMEText(f"Seu código: {cod}", 'plain'))
-            server = smtplib.SMTP("smtp.gmail.com", 587); server.starttls(); server.login(EMAIL_REMETENTE, SENHA_REMETENTE)
-            server.sendmail(EMAIL_REMETENTE, dest, msg.as_string()); server.quit()
+            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server.starttls()
+            server.login(EMAIL_REMETENTE, SENHA_REMETENTE)
+            server.sendmail(EMAIL_REMETENTE, dest, msg.as_string())
+            server.quit()
         except Exception as e:
             print(f"DEBUG EMAIL: {e}")
