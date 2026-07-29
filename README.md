@@ -16,7 +16,6 @@ Este repositório contém a versão de desenvolvimento do assistente virtual V-I
    `.\.venv\Scripts\Activate.ps1`
 3. Instale as dependências:
    `pip install -r requirements.txt`
-   `pip install python-dotenv supabase bcrypt customtkinter`
 4. Crie um arquivo `.env` na raiz do projeto e configure as suas chaves e credenciais conforme o modelo abaixo:
    ```env
    CHAVE_GROQ=sua_chave_groq_aqui

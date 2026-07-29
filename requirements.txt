@@ -4,7 +4,8 @@ PyAudio
 edge-tts
 pygame
 groq
-customtkinter
 python-dotenv
 openwakeword
 PySide6
+supabase
+bcrypt
