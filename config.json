@@ -1,1 +1,8 @@
-{"tema": "escuro"}
+{
+    "tema": "escuro",
+    "fonte": "14px",
+    "idioma": "pt_BR",
+    "volume": "49",
+    "velocidade": "45",
+    "audio": "2"
+}

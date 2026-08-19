@@ -24,14 +24,12 @@ class JanelaPrincipal(QMainWindow):
         self.layout_principal.setContentsMargins(0, 0, 0, 0)
         self.layout_principal.setSpacing(0)
 
-      
         self.sidebar = QFrame()
         self.sidebar.setObjectName("sidebar")
         self.sidebar.setFixedWidth(200)
         self.layout_sidebar = QVBoxLayout(self.sidebar)
         self.layout_principal.addWidget(self.sidebar)
 
-       
         self.btn_inicio = QPushButton("Início"); self.btn_inicio.setObjectName("menu_btn")
         self.btn_inicio.clicked.connect(lambda: self.mudar_tela(2))
         
@@ -52,16 +50,13 @@ class JanelaPrincipal(QMainWindow):
         
         self.layout_sidebar.addStretch()
         
-       
         self.btn_ajuda = QPushButton(" Ajuda"); self.btn_ajuda.setObjectName("ajuda_btn")
         self.btn_ajuda.clicked.connect(lambda: self.mudar_tela(7))
         self.layout_sidebar.addWidget(self.btn_ajuda)
 
-      
         self.stack = QStackedWidget()
         self.layout_principal.addWidget(self.stack)
         
-    
         self.login_screen = LoginScreen(supabase_client=self.supabase, callback_sucesso=self.ir_para_loading)
         self.stack.addWidget(self.login_screen) 
         self.sidebar.hide()
@@ -77,12 +72,17 @@ class JanelaPrincipal(QMainWindow):
         self.mudar_tela(1)
 
     def ir_para_inicio(self):
-       
         self.stack.addWidget(InicioScreen())          
         self.stack.addWidget(ComandosScreen())        
         self.stack.addWidget(MonitorScreen())         
-        self.stack.addWidget(HistoricoScreen())      
-        self.stack.addWidget(ConfiguracoesScreen(     
+        
+        # Histórico integrado com Supabase e ID do usuário autenticado
+        self.stack.addWidget(HistoricoScreen(
+            supabase_client=self.supabase, 
+            user_id=self.current_user_id
+        ))      
+        
+        self.stack.addWidget(ConfiguracoesScreen(    
             supabase_client=self.supabase, 
             user_id=self.current_user_id
         ))

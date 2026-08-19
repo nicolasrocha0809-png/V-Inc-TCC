@@ -116,7 +116,7 @@ Motivo: se o usuário quer abrir um aplicativo, a ação correta é abrir_app, n
 def pensar(texto_falado):
 
     resposta = cliente.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model="openai/gpt-oss-20b",
         messages=[
             {"role": "system", "content": prompt_sistema},
             # Coloquei o seu exemplo de teste aqui:

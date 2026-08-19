@@ -1,10 +1,15 @@
 {
     "visual": {
         "tema": "escuro",
+        "fonte": "14px",
         "tamanho_fonte": 14
     },
     "audio": {
-        "velocidade": 1.0,
+        "velocidade": 45,
+        "volume": 49,
         "tom": 1.0
+    },
+    "geral": {
+        "idioma": "pt_BR"
     }
 }
