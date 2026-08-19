@@ -29,7 +29,7 @@ QLabel {
 }
 
 #subtitulo_login { 
-    font-size: 14px; 
+    font-size: 30px; 
     margin-bottom: 20px; 
     color: #94A3B8;
     background-color: transparent !important;
