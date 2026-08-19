@@ -1,12 +1,20 @@
 import ast
 import json
+import os
 import operator
 import re
 import unicodedata
+from urllib.parse import quote_plus, urlencode
+from urllib.request import urlopen
+
+from dotenv import load_dotenv
 
 from teste_cerebro import pensar
 from teste_voz import ouvir, falar
 import webbrowser
+
+
+load_dotenv()
 
 
 OPERADORES_BINARIOS = {
@@ -101,6 +109,69 @@ def eh_comando_encerramento(texto):
         "salir",
     ))
 
+
+def buscar_ultimo_video(canal):
+    """Busca o vídeo mais recente de um canal público usando a YouTube Data API."""
+    chave_api = os.getenv("YOUTUBE_API_KEY")
+    if not chave_api:
+        raise RuntimeError("YOUTUBE_API_KEY não encontrada no arquivo .env")
+
+    def consultar(endpoint, parametros):
+        parametros_completos = {**parametros, "key": chave_api}
+        url = f"https://www.googleapis.com/youtube/v3/{endpoint}?{urlencode(parametros_completos)}"
+        try:
+            with urlopen(url, timeout=10) as resposta:
+                dados = json.load(resposta)
+        except Exception as erro:
+            raise RuntimeError("não foi possível consultar a YouTube Data API") from erro
+        if "error" in dados:
+            raise RuntimeError("a YouTube Data API retornou um erro")
+        return dados
+
+    canais = consultar("search", {
+        "part": "snippet",
+        "q": canal,
+        "type": "channel",
+        "maxResults": 1,
+    }).get("items", [])
+    if not canais:
+        raise RuntimeError(f"canal não encontrado: {canal}")
+
+    canal_id = canais[0]["snippet"]["channelId"]
+    detalhes_canal = consultar("channels", {
+        "part": "contentDetails",
+        "id": canal_id,
+    }).get("items", [])
+    if not detalhes_canal:
+        raise RuntimeError(f"não foi possível obter os vídeos de: {canal}")
+
+    playlist_uploads = detalhes_canal[0]["contentDetails"]["relatedPlaylists"]["uploads"]
+    videos = consultar("playlistItems", {
+        "part": "snippet",
+        "playlistId": playlist_uploads,
+        "maxResults": 1,
+    }).get("items", [])
+    if not videos:
+        raise RuntimeError(f"nenhum vídeo encontrado no canal: {canal}")
+
+    video = videos[0]["snippet"]
+    video_id = video["resourceId"]["videoId"]
+    return video["title"], f"https://www.youtube.com/watch?v={video_id}"
+
+
+def extrair_canal_para_ultimo_video(alvo):
+    alvo = normalizar_texto(alvo)
+    canal = re.sub(
+        r"\b(?:o\s+)?ultimo\s+video(?:\s+mais\s+recente)?\b",
+        "",
+        alvo,
+        flags=re.IGNORECASE,
+    )
+    canal = re.sub(r"\bvideo\s+mais\s+recente\b", "", canal, flags=re.IGNORECASE)
+    canal = re.sub(r"\b(?:do|da|de)\b", " ", canal, flags=re.IGNORECASE)
+    canal = re.sub(r"\s+", " ", canal).strip(" .?!")
+    return canal or alvo
+
 print("Iniciando o V-Inc...")
 falar("Iniciando o V-Inc...")
 
@@ -160,6 +231,29 @@ while True:
                 print(fala)
                 falar(fala)
                 webbrowser.open(f"https://{site}")
+
+            elif dicionario_resposta['acao'] == "pesquisar_video":
+                assunto = dicionario_resposta['alvo']
+                site = dicionario_resposta['site'] or "www.youtube.com"
+                assunto_normalizado = normalizar_texto(assunto)
+
+                if "ultimo video" in assunto_normalizado or "video mais recente" in assunto_normalizado:
+                    canal = extrair_canal_para_ultimo_video(assunto)
+                    titulo_video, url = buscar_ultimo_video(canal)
+                    fala = f"Abrindo o vídeo mais recente de {canal}: {titulo_video}."
+                else:
+                    consulta = quote_plus(assunto)
+                    if "youtube" in site.lower():
+                        url = f"https://www.youtube.com/results?search_query={consulta}"
+                        nome_site = "YouTube"
+                    else:
+                        url = f"https://www.google.com/search?q={consulta}+video"
+                        nome_site = "Google"
+                    fala = f"Pesquisando vídeos sobre {assunto} no {nome_site}."
+
+                print(fala)
+                falar(fala)
+                webbrowser.open(url)
 
             elif dicionario_resposta['acao'] == "calcular":
 

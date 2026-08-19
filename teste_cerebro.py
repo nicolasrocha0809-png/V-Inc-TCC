@@ -66,6 +66,7 @@ Use null quando um campo não se aplicar. Nunca omita as chaves.
 7. Regras para "pesquisar_video":
 - Use esta ação para pedidos de buscar, assistir ou procurar vídeos.
 - Se o usuário não especificar onde quer buscar, peça confirmação em "texto_resposta".
+- Para pedidos como "último vídeo do X" ou "vídeo mais recente do canal Y", "video mais famoso do canal Z" coloque no campo "alvo" a frase completa, incluindo o nome do canal.
 - Não use esta ação para perguntas simples, receitas ou explicações gerais.
 
 8. Regras para "responder":
@@ -78,8 +79,7 @@ Use null quando um campo não se aplicar. Nunca omita as chaves.
 - O campo "alvo" deve conter a expressão matemática completa, por exemplo "2 + 2" ou "5000 * 13".
 - Converta linguagem natural para operadores Python no campo "alvo": use "**" para potência, "*" para multiplicação, "/" para divisão, "+" para soma e "-" para subtração.
 - Por exemplo, "7 elevado a 2", "7 na potência de 2" e "7 ^ 2" devem retornar "7 ** 2".
-- Se a expressão estiver incompleta ou inválida, peça esclarecimento em vez de inventar um rgit add assistente.py teste_cerebro.py
-git commit -m "feat: improve voice command processing"esultado.
+- Se a expressão estiver incompleta ou inválida, peça esclarecimento em vez de inventar um resultado.
 
 10. Regras de confirmação:
 - Defina "confirmacao_necessaria": true quando o pedido for vago, ambíguo, depender de escolha ou precisar de mais detalhes.
