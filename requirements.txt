@@ -9,3 +9,4 @@ openwakeword
 PySide6
 supabase
 bcrypt
+pydub
