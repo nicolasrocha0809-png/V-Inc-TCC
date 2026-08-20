@@ -35,17 +35,28 @@ QLabel {
 
 /* Título das telas secundárias (Cadastro, Recuperação, etc.) */
 #titulo_tela {
-    font-size: 20px;
     font-weight: bold;
     margin-bottom: 15px;
     background-color: transparent !important;
 }
 
+#descricao_tela {
+    color: #94A3B8;
+    margin-bottom: 10px;
+    background-color: transparent !important;
+}
+
 #label_input { 
-    font-size: 13px; 
     font-weight: 600; 
     margin-top: 10px; 
     margin-bottom: 5px; 
+    background-color: transparent !important;
+}
+
+#ajuda_input {
+    color: #94A3B8;
+    margin-top: -4px;
+    margin-bottom: 8px;
     background-color: transparent !important;
 }
 
@@ -78,8 +89,21 @@ QPushButton {
 
 /* --- Status --- */
 #status_msg {
-    font-size: 12px;
     font-weight: bold;
     margin-top: 10px;
     background-color: transparent !important;
+}
+
+QToolButton {
+    background-color: transparent;
+    border: 1px solid #334155;
+    border-radius: 8px;
+}
+
+QToolButton:hover {
+    background-color: #334155;
+}
+
+QToolButton:focus {
+    border: 2px solid #FACC15;
 }

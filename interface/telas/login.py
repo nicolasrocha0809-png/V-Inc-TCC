@@ -1,8 +1,8 @@
 import sys, random, bcrypt, os, threading
 from pathlib import Path
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QBoxLayout, QLabel, QLineEdit, QPushButton, QFrame, QStyle, QStyleOptionButton
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QBoxLayout, QLabel, QLineEdit, QPushButton, QFrame, QStyle, QStyleOptionButton, QToolButton, QSizePolicy
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QFont, QKeySequence, QShortcut, QPainter, QPen, QColor
+from PySide6.QtGui import QPixmap, QFont, QKeySequence, QShortcut, QPainter, QPen, QColor, QIcon
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -24,6 +24,49 @@ class BotaoAcessivel(QPushButton):
             painter.setPen(QPen(QColor("#FACC15"), 4))
             painter.setBrush(Qt.NoBrush)
             painter.drawRoundedRect(self.rect().adjusted(2, 2, -2, -2), 7, 7)
+
+class BotaoVisibilidadeSenha(QToolButton):
+    def __init__(self, campo_senha, parent=None):
+        super().__init__(parent)
+        self.campo_senha = campo_senha
+        self.senha_visivel = False
+        self.setCheckable(True)
+        self.setFixedSize(44, 44)
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setToolTip("Mostrar senha")
+        self.setAccessibleName("Mostrar senha")
+        self.toggled.connect(self.alternar_visibilidade)
+        self.atualizar_icone()
+
+    def criar_icone(self, aberto):
+        pixmap = QPixmap(24, 24)
+        pixmap.fill(Qt.transparent)
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setPen(QPen(QColor("#E2E8F0"), 2))
+        painter.setBrush(Qt.NoBrush)
+        painter.drawEllipse(3, 7, 18, 10)
+        painter.setBrush(QColor("#E2E8F0"))
+        painter.drawEllipse(9, 9, 6, 6)
+        if not aberto:
+            painter.setPen(QPen(QColor("#FACC15"), 2))
+            painter.drawLine(3, 20, 21, 4)
+        painter.end()
+        return QIcon(pixmap)
+
+    def atualizar_icone(self):
+        self.setIcon(self.criar_icone(self.senha_visivel))
+
+    def alternar_visibilidade(self, visivel):
+        self.senha_visivel = visivel
+        self.campo_senha.setEchoMode(
+            QLineEdit.Normal if visivel else QLineEdit.Password
+        )
+        texto = "Ocultar senha" if visivel else "Mostrar senha"
+        self.setToolTip(texto)
+        self.setAccessibleName(texto)
+        self.atualizar_icone()
 
 class LoginScreen(QWidget):
     def __init__(self, supabase_client, callback_sucesso, parent=None):
@@ -103,7 +146,9 @@ class LoginScreen(QWidget):
         self.col_direita.setSpacing(10)
 
         self.txt_email = QLineEdit(); self.txt_email.setPlaceholderText("nome@exemplo.com")
-        self.txt_senha = QLineEdit(); self.txt_senha.setPlaceholderText("********"); self.txt_senha.setEchoMode(QLineEdit.Password)
+        self.txt_senha, self.btn_mostrar_senha = self.criar_campo_senha(
+            "********", "Senha", "Informe sua senha de acesso."
+        )
         self.lbl_e = QLabel("Email de Acesso"); self.lbl_e.setObjectName("label_input")
         self.lbl_e.setBuddy(self.txt_email)
         self.lbl_s = QLabel("Senha"); self.lbl_s.setObjectName("label_input")
@@ -127,8 +172,10 @@ class LoginScreen(QWidget):
         self.lbl_status = QLabel(""); self.lbl_status.setObjectName("status_msg")
 
         # Adiciona os elementos no layout da direita
-        for w in [self.lbl_e, self.txt_email, self.lbl_s, self.txt_senha, self.btn_entrar, self.btn_cad]:
+        self.linha_senha = self.criar_linha_senha(self.txt_senha, self.btn_mostrar_senha)
+        for w in [self.lbl_e, self.txt_email, self.lbl_s, self.btn_entrar, self.btn_cad]:
             self.col_direita.addWidget(w)
+        self.col_direita.insertWidget(3, self.linha_senha)
 
         self.col_direita.addWidget(self.btn_rec, alignment=Qt.AlignCenter)
         self.col_direita.addWidget(self.lbl_status, alignment=Qt.AlignCenter)
@@ -137,7 +184,7 @@ class LoginScreen(QWidget):
         self.botao_acao_atual = self.btn_entrar
         self.botao_voltar_atual = None
         self.configurar_navegacao(
-            [self.txt_email, self.txt_senha],
+            [self.txt_email, self.txt_senha, self.btn_mostrar_senha],
             [self.btn_entrar, self.btn_cad, self.btn_rec],
         )
 
@@ -188,11 +235,24 @@ class LoginScreen(QWidget):
         self.lbl_sub.setFont(fonte_subtitulo)
 
         largura_controles = max(240, min(420, largura - (56 if largura < 760 else 120)))
+        for botao in self.findChildren(QToolButton):
+            tamanho_botao = max(40, min(48, int(40 + (8 * fator_largura))))
+            botao.setFixedSize(tamanho_botao, tamanho_botao)
+
         for campo in self.findChildren(QLineEdit):
-            campo.setMaximumWidth(largura_controles)
+            largura_campo = largura_controles
+            for botao in self.findChildren(BotaoVisibilidadeSenha):
+                if botao.campo_senha is campo:
+                    largura_campo -= botao.width() + 8
+                    break
+            campo.setMaximumWidth(max(180, largura_campo))
             fonte_campo = QFont(campo.font())
             fonte_campo.setPointSizeF(12.0 + (5.0 * fator_largura))
             campo.setFont(fonte_campo)
+
+        for linha in self.findChildren(QWidget):
+            if linha.objectName() == "linha_senha":
+                linha.setFixedWidth(largura_controles)
 
         for botao in self.findChildren(QPushButton):
             if botao.objectName() != "btn_link":
@@ -201,18 +261,52 @@ class LoginScreen(QWidget):
                 fonte_botao.setPointSizeF(13.0 + (3.0 * fator_largura))
                 botao.setFont(fonte_botao)
 
+        for label in self.findChildren(QLabel):
+            fonte_label = QFont(label.font())
+            if label.objectName() == "titulo_tela":
+                tamanho = 20.0 + (8.0 * fator_largura)
+            elif label.objectName() == "label_input":
+                tamanho = 13.0 + (4.0 * fator_largura)
+            elif label.objectName() == "descricao_tela":
+                tamanho = 13.0 + (3.0 * fator_largura)
+            else:
+                tamanho = 12.0 + (2.0 * fator_largura)
+            fonte_label.setPointSizeF(tamanho)
+            label.setFont(fonte_label)
+
     def configurar_navegacao(self, campos, botoes):
         controles = campos + botoes
         for atual, proximo in zip(controles, controles[1:]):
             self.setTabOrder(atual, proximo)
         for campo in campos:
-            campo.returnPressed.connect(self.ativar_acao_principal)
+            if hasattr(campo, "returnPressed"):
+                campo.returnPressed.connect(self.ativar_acao_principal)
         if controles:
             controles[0].setFocus()
 
+    def criar_campo_senha(self, placeholder, nome_acessivel, descricao=None):
+        campo = QLineEdit()
+        campo.setPlaceholderText(placeholder)
+        campo.setEchoMode(QLineEdit.Password)
+        campo.setAccessibleName(nome_acessivel)
+        campo.setAccessibleDescription(descricao or "A senha deve ter pelo menos 8 caracteres.")
+        botao = BotaoVisibilidadeSenha(campo)
+        return campo, botao
+
+    def criar_linha_senha(self, campo, botao):
+        linha = QWidget()
+        linha.setObjectName("linha_senha")
+        linha_layout = QHBoxLayout(linha)
+        linha_layout.setContentsMargins(0, 0, 0, 0)
+        linha_layout.setSpacing(8)
+        campo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        linha_layout.addWidget(campo)
+        linha_layout.addWidget(botao)
+        return linha
+
     def ativar_acao_principal(self):
         controle_focado = self.focusWidget()
-        if isinstance(controle_focado, QPushButton):
+        if isinstance(controle_focado, (QPushButton, QToolButton)):
             if controle_focado.isVisible() and controle_focado.isEnabled():
                 controle_focado.click()
             return
@@ -241,24 +335,56 @@ class LoginScreen(QWidget):
         self.limpar_card()
         layout = self.criar_layout_secundario()
         lbl_titulo = QLabel("Criar Conta"); lbl_titulo.setObjectName("titulo_tela")
-        self.txt_n_email = QLineEdit(); self.txt_n_email.setPlaceholderText("E-mail")
-        self.txt_n_senha = QLineEdit(); self.txt_n_senha.setPlaceholderText("Senha"); self.txt_n_senha.setEchoMode(QLineEdit.Password)
+        lbl_descricao = QLabel("Cadastre seu e-mail e defina uma senha para acessar o V-Inc.")
+        lbl_descricao.setObjectName("descricao_tela")
+
+        lbl_email = QLabel("E-mail")
+        lbl_email.setObjectName("label_input")
+        self.txt_n_email = QLineEdit(); self.txt_n_email.setPlaceholderText("nome@exemplo.com")
+        self.txt_n_email.setAccessibleName("E-mail para cadastro")
+        lbl_email.setBuddy(self.txt_n_email)
+
+        lbl_senha = QLabel("Senha")
+        lbl_senha.setObjectName("label_input")
+        self.txt_n_senha, self.btn_mostrar_nova_senha = self.criar_campo_senha(
+            "Crie uma senha segura",
+            "Senha para cadastro",
+            "A senha deve ter pelo menos 8 caracteres."
+        )
+        lbl_senha.setBuddy(self.txt_n_senha)
+
+        lbl_requisito = QLabel("Use pelo menos 8 caracteres.")
+        lbl_requisito.setObjectName("ajuda_input")
         btn_salvar = BotaoAcessivel("Criar Conta"); btn_salvar.setObjectName("btn_entrar"); btn_salvar.clicked.connect(self.acao_cadastrar)
+        btn_salvar.setAccessibleName("Criar conta")
         btn_voltar = BotaoAcessivel("Voltar"); btn_voltar.setObjectName("btn_secundario"); btn_voltar.clicked.connect(self.criar_tela_login)
+        btn_voltar.setAccessibleName("Voltar para o login")
 
         self.lbl_status_cadastro = QLabel(""); self.lbl_status_cadastro.setObjectName("status_msg")
 
-        for w in [lbl_titulo, self.txt_n_email, self.txt_n_senha, btn_salvar, btn_voltar, self.lbl_status_cadastro]:
+        self.linha_senha = self.criar_linha_senha(self.txt_n_senha, self.btn_mostrar_nova_senha)
+        for w in [
+            lbl_titulo, lbl_descricao, lbl_email, self.txt_n_email,
+            lbl_senha, lbl_requisito, btn_salvar, btn_voltar,
+            self.lbl_status_cadastro
+        ]:
             layout.addWidget(w)
+        layout.insertWidget(5, self.linha_senha)
         self.tela_atual = "cadastro"
         self.botao_acao_atual = btn_salvar
         self.botao_voltar_atual = btn_voltar
-        self.configurar_navegacao([self.txt_n_email, self.txt_n_senha], [btn_salvar, btn_voltar])
+        self.atualizar_dimensoes_responsivas()
+        self.configurar_navegacao([self.txt_n_email, self.txt_n_senha, self.btn_mostrar_nova_senha], [btn_salvar, btn_voltar])
 
     def acao_cadastrar(self):
         email, senha = self.txt_n_email.text().strip(), self.txt_n_senha.text().strip()
         if not email or not senha:
             self.lbl_status_cadastro.setText("Preencha todos os campos.")
+            return
+
+        if len(senha) < 8:
+            self.lbl_status_cadastro.setText("A senha deve ter pelo menos 8 caracteres.")
+            self.txt_n_senha.setFocus()
             return
             
         try:
@@ -339,18 +465,24 @@ class LoginScreen(QWidget):
     def criar_tela_nova_senha(self):
         self.limpar_card()
         layout = self.criar_layout_secundario()
-        self.txt_n_senha = QLineEdit(); self.txt_n_senha.setPlaceholderText("Nova senha"); self.txt_n_senha.setEchoMode(QLineEdit.Password)
+        self.txt_n_senha, self.btn_mostrar_nova_senha = self.criar_campo_senha(
+            "Nova senha",
+            "Nova senha",
+            "A senha deve ter pelo menos 8 caracteres."
+        )
         btn_upd = BotaoAcessivel("Atualizar Senha"); btn_upd.setObjectName("btn_entrar"); btn_upd.clicked.connect(self.atualizar_senha_supabase)
         
         self.lbl_atualizar_senha = QLabel(""); self.lbl_atualizar_senha.setObjectName("status_msg")
         
-        layout.addWidget(self.txt_n_senha)
+        self.linha_senha = self.criar_linha_senha(self.txt_n_senha, self.btn_mostrar_nova_senha)
+        layout.addWidget(self.linha_senha)
         layout.addWidget(btn_upd)
         layout.addWidget(self.lbl_atualizar_senha, alignment=Qt.AlignCenter)
         self.tela_atual = "nova_senha"
         self.botao_acao_atual = btn_upd
         self.botao_voltar_atual = None
-        self.configurar_navegacao([self.txt_n_senha], [btn_upd])
+        self.atualizar_dimensoes_responsivas()
+        self.configurar_navegacao([self.txt_n_senha, self.btn_mostrar_nova_senha], [btn_upd])
 
     def criar_layout_secundario(self):
         layout = QVBoxLayout()
