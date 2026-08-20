@@ -64,10 +64,6 @@ QPushButton {
     border: none;
 }
 
-#btn_entrar {
-    margin-top: 15px;
-}
-
 #btn_secundario {
     background-color: transparent;
     border: 1px solid #475569;
