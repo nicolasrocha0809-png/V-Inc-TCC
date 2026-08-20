@@ -276,7 +276,9 @@ class LoginScreen(QWidget):
         self.txt_email_rec = QLineEdit(); self.txt_email_rec.setPlaceholderText("E-mail cadastrado")
         btn_env = BotaoAcessivel("Enviar Código"); btn_env.setObjectName("btn_entrar"); btn_env.clicked.connect(self.enviar_codigo_email)
         btn_voltar = BotaoAcessivel("Voltar"); btn_voltar.setObjectName("btn_secundario"); btn_voltar.clicked.connect(self.criar_tela_login)
-        for w in [lbl_titulo, self.txt_email_rec, btn_env, btn_voltar]: layout.addWidget(w)
+        self.lbl_status_recuperacao = QLabel(""); self.lbl_status_recuperacao.setObjectName("status_msg")
+        for w in [lbl_titulo, self.txt_email_rec, btn_env, btn_voltar, self.lbl_status_recuperacao]:
+            layout.addWidget(w)
         self.tela_atual = "recuperacao"
         self.botao_acao_atual = btn_env
         self.botao_voltar_atual = btn_voltar
@@ -284,6 +286,30 @@ class LoginScreen(QWidget):
 
     def enviar_codigo_email(self):
         self.email_recuperando = self.txt_email_rec.text().strip()
+
+        if not self.email_recuperando:
+            self.lbl_status_recuperacao.setText("Informe seu e-mail.")
+            self.txt_email_rec.setFocus()
+            return
+
+        try:
+            resposta = (
+                self.supabase.table("usuarios")
+                .select("id")
+                .eq("email", self.email_recuperando)
+                .limit(1)
+                .execute()
+            )
+        except Exception as e:
+            print(f"DEBUG RECUPERACAO: {e}")
+            self.lbl_status_recuperacao.setText("Erro de conexão. Tente novamente.")
+            return
+
+        if not resposta.data:
+            self.lbl_status_recuperacao.setText("E-mail não encontrado.")
+            self.txt_email_rec.setFocus()
+            return
+
         self.codigo_verificacao = str(random.randint(100000, 999999))
         threading.Thread(target=self.disparar_email, args=(self.email_recuperando, self.codigo_verificacao), daemon=True).start()
         self.criar_tela_validar()
