@@ -19,6 +19,7 @@ Este repositório contém a versão de desenvolvimento do assistente virtual V-I
 4. Crie um arquivo `.env` na raiz do projeto e configure as suas chaves e credenciais conforme o modelo abaixo:
    ```env
    CHAVE_GROQ=sua_chave_groq_aqui
+   YOUTUBE_API_KEY=sua_chave_youtube_api_aqui
    SUPABASE_URL=sua_url_do_supabase_aqui
    SUPABASE_KEY=sua_chave_anon_do_supabase_aqui
    EMAIL_REMETENTE=seu_email_remetente_gmail_aqui
