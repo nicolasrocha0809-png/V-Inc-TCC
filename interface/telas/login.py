@@ -314,8 +314,20 @@ class LoginScreen(QWidget):
             self.botao_acao_atual.click()
 
     def voltar_para_login(self):
-        if self.tela_atual != "login":
+        if self.tela_atual == "login":
+            return
+        if self.tela_atual == "cadastro":
             self.criar_tela_login()
+            return
+        if self.tela_atual == "recuperacao":
+            self.criar_tela_login()
+            return
+        if self.tela_atual == "validacao":
+            self.criar_tela_recuperacao()
+            return
+        if self.tela_atual == "nova_senha":
+            self.criar_tela_validar()
+            return
 
     def acao_login(self):
         email, senha = self.txt_email.text().strip(), self.txt_senha.text().strip()
@@ -445,16 +457,18 @@ class LoginScreen(QWidget):
         layout = self.criar_layout_secundario()
         self.txt_cod = QLineEdit(); self.txt_cod.setPlaceholderText("Código recebido")
         btn_val = BotaoAcessivel("Validar"); btn_val.setObjectName("btn_entrar"); btn_val.clicked.connect(self.verificar_codigo)
-        
+        btn_voltar = BotaoAcessivel("Voltar"); btn_voltar.setObjectName("btn_secundario"); btn_voltar.clicked.connect(self.voltar_para_login)
+
         self.lbl_verificar_codigo = QLabel(""); self.lbl_verificar_codigo.setObjectName("status_msg")
-        
+
         layout.addWidget(self.txt_cod)
         layout.addWidget(btn_val)
+        layout.addWidget(btn_voltar)
         layout.addWidget(self.lbl_verificar_codigo, alignment=Qt.AlignCenter)
         self.tela_atual = "validacao"
         self.botao_acao_atual = btn_val
-        self.botao_voltar_atual = None
-        self.configurar_navegacao([self.txt_cod], [btn_val])
+        self.botao_voltar_atual = btn_voltar
+        self.configurar_navegacao([self.txt_cod], [btn_val, btn_voltar])
 
     def verificar_codigo(self):
         if self.txt_cod.text().strip() == self.codigo_verificacao: 
@@ -471,18 +485,20 @@ class LoginScreen(QWidget):
             "A senha deve ter pelo menos 8 caracteres."
         )
         btn_upd = BotaoAcessivel("Atualizar Senha"); btn_upd.setObjectName("btn_entrar"); btn_upd.clicked.connect(self.atualizar_senha_supabase)
-        
+        btn_voltar = BotaoAcessivel("Voltar"); btn_voltar.setObjectName("btn_secundario"); btn_voltar.clicked.connect(self.voltar_para_login)
+
         self.lbl_atualizar_senha = QLabel(""); self.lbl_atualizar_senha.setObjectName("status_msg")
-        
+
         self.linha_senha = self.criar_linha_senha(self.txt_n_senha, self.btn_mostrar_nova_senha)
         layout.addWidget(self.linha_senha)
         layout.addWidget(btn_upd)
+        layout.addWidget(btn_voltar)
         layout.addWidget(self.lbl_atualizar_senha, alignment=Qt.AlignCenter)
         self.tela_atual = "nova_senha"
         self.botao_acao_atual = btn_upd
-        self.botao_voltar_atual = None
+        self.botao_voltar_atual = btn_voltar
         self.atualizar_dimensoes_responsivas()
-        self.configurar_navegacao([self.txt_n_senha, self.btn_mostrar_nova_senha], [btn_upd])
+        self.configurar_navegacao([self.txt_n_senha, self.btn_mostrar_nova_senha], [btn_upd, btn_voltar])
 
     def criar_layout_secundario(self):
         layout = QVBoxLayout()
