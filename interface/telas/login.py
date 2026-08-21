@@ -271,8 +271,9 @@ class LoginScreen(QWidget):
             largura_campo = largura_controles
             for botao in self.findChildren(BotaoVisibilidadeSenha):
                 if botao.campo_senha is campo:
-                    largura_campo = max(220, largura_controles - botao.width() - 12)
+                    largura_campo = max(180, largura_controles - botao.width() - 12)
                     break
+            campo.setFixedWidth(largura_campo)
             campo.setMaximumWidth(max(180, largura_campo))
             fonte_campo = QFont(campo.font())
             fonte_campo.setPointSizeF(12.0 + (5.0 * fator_largura))
@@ -282,8 +283,13 @@ class LoginScreen(QWidget):
             if linha.objectName() == "linha_senha":
                 linha.setFixedWidth(largura_controles)
 
+        for label in self.findChildren(QLabel):
+            if label.objectName() == "descricao_tela":
+                label.setFixedWidth(largura_controles)
+
         for botao in self.findChildren(QPushButton):
             if botao.objectName() != "btn_link":
+                botao.setFixedWidth(largura_controles)
                 botao.setMaximumWidth(largura_controles)
                 fonte_botao = QFont(botao.font())
                 fonte_botao.setPointSizeF(13.0 + (3.0 * fator_largura))
@@ -478,16 +484,38 @@ class LoginScreen(QWidget):
     def criar_tela_recuperacao(self):
         self.limpar_card()
         layout = self.criar_layout_secundario()
-        lbl_titulo = QLabel("Recuperação"); lbl_titulo.setObjectName("titulo_tela")
-        self.txt_email_rec = QLineEdit(); self.txt_email_rec.setPlaceholderText("E-mail cadastrado")
+        lbl_titulo = QLabel("Recuperar senha"); lbl_titulo.setObjectName("titulo_tela")
+        lbl_titulo.setAlignment(Qt.AlignCenter)
+        lbl_descricao = QLabel("Informe o e-mail da sua conta para receber um código de verificação.")
+        lbl_descricao.setObjectName("descricao_tela")
+        lbl_descricao.setWordWrap(True)
+        lbl_descricao.setMaximumWidth(420)
+        lbl_descricao.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        lbl_descricao.setMinimumHeight(48)
+        lbl_descricao.setAlignment(Qt.AlignCenter)
+        lbl_email = QLabel("E-mail da conta")
+        lbl_email.setObjectName("label_input")
+        lbl_email.setAlignment(Qt.AlignLeft)
+        self.txt_email_rec = QLineEdit(); self.txt_email_rec.setPlaceholderText("nome@exemplo.com")
+        self.txt_email_rec.setAccessibleName("E-mail da conta para recuperação de senha")
+        self.txt_email_rec.setAccessibleDescription("Digite o e-mail cadastrado para receber o código de verificação.")
+        self.txt_email_rec.setMaximumWidth(420)
+        lbl_email.setBuddy(self.txt_email_rec)
         btn_env = BotaoAcessivel("Enviar Código"); btn_env.setObjectName("btn_entrar"); btn_env.clicked.connect(self.enviar_codigo_email)
+        btn_env.setAccessibleName("Enviar código de recuperação")
+        btn_env.setMaximumWidth(420)
         btn_voltar = BotaoAcessivel("Voltar"); btn_voltar.setObjectName("btn_secundario"); btn_voltar.clicked.connect(self.criar_tela_login)
+        btn_voltar.setAccessibleName("Voltar para o login")
+        btn_voltar.setMaximumWidth(420)
         self.lbl_status_recuperacao = QLabel(""); self.lbl_status_recuperacao.setObjectName("status_msg")
-        for w in [lbl_titulo, self.txt_email_rec, btn_env, btn_voltar, self.lbl_status_recuperacao]:
+        self.lbl_status_recuperacao.setAlignment(Qt.AlignCenter)
+        self.lbl_status_recuperacao.setWordWrap(True)
+        for w in [lbl_titulo, lbl_descricao, lbl_email, self.txt_email_rec, btn_env, btn_voltar, self.lbl_status_recuperacao]:
             layout.addWidget(w)
         self.tela_atual = "recuperacao"
         self.botao_acao_atual = btn_env
         self.botao_voltar_atual = btn_voltar
+        self.atualizar_dimensoes_responsivas()
         self.configurar_navegacao([self.txt_email_rec], [btn_env, btn_voltar])
 
     def enviar_codigo_email(self):
@@ -523,19 +551,44 @@ class LoginScreen(QWidget):
     def criar_tela_validar(self):
         self.limpar_card()
         layout = self.criar_layout_secundario()
-        self.txt_cod = QLineEdit(); self.txt_cod.setPlaceholderText("Código recebido")
-        btn_val = BotaoAcessivel("Validar"); btn_val.setObjectName("btn_entrar"); btn_val.clicked.connect(self.verificar_codigo)
+        lbl_titulo = QLabel("Verificar código"); lbl_titulo.setObjectName("titulo_tela")
+        lbl_titulo.setAlignment(Qt.AlignCenter)
+        lbl_descricao = QLabel("Digite o código de seis números enviado para o seu e-mail.")
+        lbl_descricao.setObjectName("descricao_tela")
+        lbl_descricao.setWordWrap(True)
+        lbl_descricao.setMaximumWidth(420)
+        lbl_descricao.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        lbl_descricao.setMinimumHeight(48)
+        lbl_descricao.setAlignment(Qt.AlignCenter)
+        lbl_codigo = QLabel("Código de verificação")
+        lbl_codigo.setObjectName("label_input")
+        lbl_codigo.setAlignment(Qt.AlignLeft)
+        self.txt_cod = QLineEdit(); self.txt_cod.setPlaceholderText("000000")
+        self.txt_cod.setAccessibleName("Código de verificação")
+        self.txt_cod.setAccessibleDescription("Digite o código de seis números recebido por e-mail.")
+        self.txt_cod.setMaxLength(6)
+        self.txt_cod.setMaximumWidth(420)
+        lbl_codigo.setBuddy(self.txt_cod)
+        btn_val = BotaoAcessivel("Validar código"); btn_val.setObjectName("btn_entrar"); btn_val.clicked.connect(self.verificar_codigo)
+        btn_val.setAccessibleName("Validar código de recuperação")
+        btn_val.setMaximumWidth(420)
         btn_voltar = BotaoAcessivel("Voltar"); btn_voltar.setObjectName("btn_secundario"); btn_voltar.clicked.connect(self.voltar_para_login)
+        btn_voltar.setAccessibleName("Voltar para informar o e-mail")
+        btn_voltar.setMaximumWidth(420)
 
         self.lbl_verificar_codigo = QLabel(""); self.lbl_verificar_codigo.setObjectName("status_msg")
+        self.lbl_verificar_codigo.setAlignment(Qt.AlignCenter)
+        self.lbl_verificar_codigo.setWordWrap(True)
 
-        layout.addWidget(self.txt_cod)
+        for w in [lbl_titulo, lbl_descricao, lbl_codigo, self.txt_cod]:
+            layout.addWidget(w)
         layout.addWidget(btn_val)
         layout.addWidget(btn_voltar)
         layout.addWidget(self.lbl_verificar_codigo, alignment=Qt.AlignCenter)
         self.tela_atual = "validacao"
         self.botao_acao_atual = btn_val
         self.botao_voltar_atual = btn_voltar
+        self.atualizar_dimensoes_responsivas()
         self.configurar_navegacao([self.txt_cod], [btn_val, btn_voltar])
 
     def verificar_codigo(self):
@@ -547,17 +600,42 @@ class LoginScreen(QWidget):
     def criar_tela_nova_senha(self):
         self.limpar_card()
         layout = self.criar_layout_secundario()
+        lbl_titulo = QLabel("Criar nova senha"); lbl_titulo.setObjectName("titulo_tela")
+        lbl_titulo.setAlignment(Qt.AlignCenter)
+        lbl_descricao = QLabel("Defina uma nova senha com pelo menos 8 caracteres.")
+        lbl_descricao.setObjectName("descricao_tela")
+        lbl_descricao.setWordWrap(True)
+        lbl_descricao.setMaximumWidth(420)
+        lbl_descricao.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        lbl_descricao.setMinimumHeight(48)
+        lbl_descricao.setAlignment(Qt.AlignCenter)
+        lbl_senha = QLabel("Nova senha")
+        lbl_senha.setObjectName("label_input")
+        lbl_senha.setAlignment(Qt.AlignLeft)
         self.txt_n_senha, self.btn_mostrar_nova_senha = self.criar_campo_senha(
             "Nova senha",
             "Nova senha",
             "A senha deve ter pelo menos 8 caracteres."
         )
+        self.txt_n_senha.setMaximumWidth(420)
+        lbl_senha.setBuddy(self.txt_n_senha)
         btn_upd = BotaoAcessivel("Atualizar Senha"); btn_upd.setObjectName("btn_entrar"); btn_upd.clicked.connect(self.atualizar_senha_supabase)
+        btn_upd.setAccessibleName("Atualizar senha")
+        btn_upd.setMaximumWidth(420)
         btn_voltar = BotaoAcessivel("Voltar"); btn_voltar.setObjectName("btn_secundario"); btn_voltar.clicked.connect(self.voltar_para_login)
+        btn_voltar.setAccessibleName("Voltar para validar o código")
+        btn_voltar.setMaximumWidth(420)
 
         self.lbl_atualizar_senha = QLabel(""); self.lbl_atualizar_senha.setObjectName("status_msg")
+        self.lbl_atualizar_senha.setAlignment(Qt.AlignCenter)
+        self.lbl_atualizar_senha.setWordWrap(True)
 
         self.linha_senha = self.criar_linha_senha(self.txt_n_senha, self.btn_mostrar_nova_senha)
+        self.linha_senha.setFixedWidth(420)
+        self.linha_senha.setMaximumWidth(420)
+        layout.addWidget(lbl_titulo)
+        layout.addWidget(lbl_descricao)
+        layout.addWidget(lbl_senha)
         layout.addWidget(self.linha_senha)
         layout.addWidget(btn_upd)
         layout.addWidget(btn_voltar)
