@@ -1,6 +1,6 @@
 import sys, random, bcrypt, os, threading
 from pathlib import Path
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QBoxLayout, QLabel, QLineEdit, QPushButton, QFrame, QStyle, QStyleOptionButton, QToolButton, QSizePolicy
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QBoxLayout, QLabel, QLineEdit, QPushButton, QFrame, QStyle, QStyleOptionButton, QToolButton, QSizePolicy, QScrollArea
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap, QFont, QFontMetrics, QKeySequence, QShortcut, QPainter, QPen, QColor, QIcon
 import smtplib
@@ -105,13 +105,20 @@ class LoginScreen(QWidget):
         self.main_layout.setSpacing(64)
         self.main_layout.setAlignment(Qt.AlignCenter)
 
-        self.card_container = QWidget(self)
+        self.card_container = QWidget()
         self.card_container.setObjectName("card_container")
+        self.card_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         self.card_layout = QVBoxLayout(self.card_container)
         self.card_layout.setContentsMargins(0, 0, 0, 0)
         self.card_layout.setSpacing(0)
         self.card_layout.setAlignment(Qt.AlignCenter)
-        self.main_layout.addWidget(self.card_container, alignment=Qt.AlignCenter)
+        self.scroll_area = QScrollArea(self)
+        self.scroll_area.setObjectName("login_scroll_area")
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setFrameShape(QFrame.NoFrame)
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scroll_area.setWidget(self.card_container)
+        self.main_layout.addWidget(self.scroll_area, stretch=1)
 
         self.criar_tela_login()
 
@@ -119,6 +126,7 @@ class LoginScreen(QWidget):
         while self.card_layout.count():
             item = self.card_layout.takeAt(0)
             if item.widget():
+                item.widget().hide()
                 item.widget().deleteLater()
             elif item.layout():
                 self._limpar_sub_layout(item.layout())
@@ -128,6 +136,7 @@ class LoginScreen(QWidget):
         while layout.count():
             item = layout.takeAt(0)
             if item.widget():
+                item.widget().hide()
                 item.widget().deleteLater()
             elif item.layout():
                 self._limpar_sub_layout(item.layout())
@@ -417,7 +426,6 @@ class LoginScreen(QWidget):
         lbl_email.setAlignment(Qt.AlignLeft)
         self.txt_n_email = QLineEdit(); self.txt_n_email.setPlaceholderText("nome@exemplo.com")
         self.txt_n_email.setAccessibleName("E-mail para cadastro")
-        self.txt_n_email.setFixedWidth(420)
         self.txt_n_email.setMaximumWidth(420)
         lbl_email.setBuddy(self.txt_n_email)
 
@@ -437,18 +445,15 @@ class LoginScreen(QWidget):
         lbl_requisito.setAlignment(Qt.AlignCenter)
         btn_salvar = BotaoAcessivel("Criar Conta"); btn_salvar.setObjectName("btn_entrar"); btn_salvar.clicked.connect(self.acao_cadastrar)
         btn_salvar.setAccessibleName("Criar conta")
-        btn_salvar.setFixedWidth(420)
         btn_salvar.setMaximumWidth(420)
         btn_voltar = BotaoAcessivel("Voltar"); btn_voltar.setObjectName("btn_secundario"); btn_voltar.clicked.connect(self.criar_tela_login)
         btn_voltar.setAccessibleName("Voltar para o login")
-        btn_voltar.setFixedWidth(420)
         btn_voltar.setMaximumWidth(420)
 
         self.lbl_status_cadastro = QLabel(""); self.lbl_status_cadastro.setObjectName("status_msg")
         self.lbl_status_cadastro.setAlignment(Qt.AlignCenter)
 
         self.linha_senha = self.criar_linha_senha(self.txt_n_senha, self.btn_mostrar_nova_senha)
-        self.linha_senha.setFixedWidth(420)
         self.linha_senha.setMaximumWidth(420)
         for w in [
             lbl_titulo, lbl_descricao, lbl_email, self.txt_n_email,
@@ -631,7 +636,6 @@ class LoginScreen(QWidget):
         self.lbl_atualizar_senha.setWordWrap(True)
 
         self.linha_senha = self.criar_linha_senha(self.txt_n_senha, self.btn_mostrar_nova_senha)
-        self.linha_senha.setFixedWidth(420)
         self.linha_senha.setMaximumWidth(420)
         layout.addWidget(lbl_titulo)
         layout.addWidget(lbl_descricao)
@@ -650,7 +654,7 @@ class LoginScreen(QWidget):
         container = QWidget(self.card_container)
         container.setObjectName("container_secundario")
         container.setMaximumWidth(460)
-        container.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         layout = QVBoxLayout(container)
         layout.setContentsMargins(0, 32, 0, 32)
