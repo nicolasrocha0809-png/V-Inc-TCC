@@ -10,16 +10,15 @@ class ConfigManager:
     def _load_defaults(self):
         return {
             "visual": {"tema": "dark", "fonte": "12px"},
-            "audio": {"velocidade": 80, "volume": 80},  # Atualizado para incluir o volume separado
+            "audio": {"velocidade": 80, "volume": 80},  
             "geral": {"idioma": "pt_BR"},
-            "usuario": {"id_usuario_atual": 10}  # <-- ADICIONADO: Padrão inicial
+            "usuario": {"id_usuario_atual": 10}  
         }
 
     def load_settings(self):
         if os.path.exists(self.file_path):
             with open(self.file_path, "r", encoding="utf-8") as f:
                 dados_salvos = json.load(f)
-                # Atualiza as categorias de forma inteligente para não perder chaves novas
                 for categoria, valores in dados_salvos.items():
                     if categoria in self.settings and isinstance(valores, dict):
                         self.settings[categoria].update(valores)
