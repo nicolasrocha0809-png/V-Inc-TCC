@@ -32,8 +32,11 @@ def salvar_comando_historico(comando_texto):
     """Salva o comando no Supabase usando dinamicamente o ID do usuário ativo"""
     if supabase:
         try:
-           
-            user_id_atual = settings.get("usuario", "id_usuario_atual") or 10
+            user_id_atual = settings.get("usuario", "id_usuario_atual")
+            
+            if not user_id_atual:
+                print("DEBUG: Nenhum usuário logado encontrado no settings. O histórico não será salvo.")
+                return
 
             supabase.table("historico").insert({
                 "id_usuario": user_id_atual,
@@ -212,7 +215,7 @@ while True:
             falar("Encerrando o Sistema...")
             break
            
-       
+        
         salvar_comando_historico(texto_falado)
 
         dicionario_resposta = pensar(texto_falado)

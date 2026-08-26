@@ -1,6 +1,7 @@
 from datetime import datetime
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QListWidget, QVBoxLayout, QWidget
+from config import settings  # Importado para garantir a leitura do ID atual se necessário
 
 
 class HistoricoScreen(QWidget):
@@ -24,7 +25,7 @@ class HistoricoScreen(QWidget):
     lbl_titulo.setAlignment(Qt.AlignCenter)
     layout.addWidget(lbl_titulo)
 
-  
+ 
     self.list_widget = QListWidget()
     self.list_widget.setStyleSheet("""
             QListWidget {
@@ -50,16 +51,24 @@ class HistoricoScreen(QWidget):
       self.list_widget.addItem("Conexão com o Supabase indisponível.")
 
   def carregar_historico(self):
-    """Busca o histórico geral de todos os usuários no Supabase"""
+    """Busca o histórico filtrando estritamente pelo ID do usuário logado"""
     try:
       self.list_widget.clear()
 
-      print("DEBUG: Tentando buscar histórico global de comandos...")
+      # Pega o ID passado por parâmetro ou busca direto nas configurações ativas
+      usuario_ativo = self.user_id or settings.get("usuario", "id_usuario_atual")
 
-  
+      print(f"DEBUG: Tentando buscar histórico para o usuário ID -> {usuario_ativo}")
+
+      if not usuario_ativo:
+        self.list_widget.addItem("Nenhum usuário autenticado encontrado.")
+        return
+
+ 
       response = (
           self.supabase.table("historico")
           .select("comando, data_hora")
+          .eq("id_usuario", usuario_ativo)  # <-- O FILTRO QUE FALTAVA
           .order("data_hora", desc=True)
           .execute()
       )
@@ -69,14 +78,13 @@ class HistoricoScreen(QWidget):
       print(f"DEBUG: Dados encontrados: {dados}")
 
       if not dados:
-        self.list_widget.addItem("Nenhum comando registrado ainda.")
+        self.list_widget.addItem("Nenhum comando registrado ainda para este usuário.")
         return
 
       for item in dados:
         comando = item.get("comando", "Comando desconhecido")
         data_str = item.get("data_hora", "")
 
-        
         try:
           dt = datetime.fromisoformat(data_str.replace("Z", "+00:00"))
           data_formatada = dt.strftime("%d/%m/%Y %H:%M:%S")
