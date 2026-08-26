@@ -1,7 +1,12 @@
 import sys
 import os
 from dotenv import load_dotenv
+
+# Forca a camada de acessibilidade do Qt para leitores de tela (NVDA/JAWS).
+os.environ.setdefault("QT_ACCESSIBILITY", "1")
+
 from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QAccessible
 from supabase import create_client
 from interface.janela import JanelaPrincipal
 from config import settings
@@ -42,6 +47,7 @@ def carregar_estilo_global():
 
 # Inicialização da Aplicação
 app = QApplication(sys.argv)
+QAccessible.setActive(True)
 
 # Aplica o estilo concatenado
 app.setStyleSheet(carregar_estilo_global())

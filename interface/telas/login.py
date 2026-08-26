@@ -2,7 +2,7 @@ import sys, random, bcrypt, os, threading
 from pathlib import Path
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QBoxLayout, QLabel, QLineEdit, QPushButton, QFrame, QStyle, QStyleOptionButton, QToolButton, QSizePolicy, QScrollArea
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QFont, QFontMetrics, QKeySequence, QShortcut, QPainter, QPen, QColor, QIcon
+from PySide6.QtGui import QPixmap, QFont, QFontMetrics, QKeySequence, QShortcut, QPainter, QPen, QColor, QIcon, QAccessible, QAccessibleAnnouncementEvent
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -412,6 +412,12 @@ class LoginScreen(QWidget):
         if self.botao_acao_atual and self.botao_acao_atual.isVisible():
             self.botao_acao_atual.click()
 
+    def anunciar_status(self, label, mensagem):
+        label.setText(mensagem)
+        evento = QAccessibleAnnouncementEvent(label, mensagem)
+        evento.setPoliteness(QAccessibleAnnouncementEvent.Politeness.Assertive)
+        QAccessible.updateAccessibility(evento)
+
     def voltar_para_login(self):
         if self.tela_atual == "login":
             return
@@ -437,10 +443,10 @@ class LoginScreen(QWidget):
                 user_id = res.data[0]["id"]
                 if self.callback_sucesso: self.callback_sucesso(user_id)
             else: 
-                self.lbl_status.setText("Credenciais inválidas.")
+                self.anunciar_status(self.lbl_status, "Credenciais inválidas.")
         except Exception as e:
             print(f"DEBUG LOGIN: {e}")
-            self.lbl_status.setText("Erro de conexão.")
+            self.anunciar_status(self.lbl_status, "Erro de conexão.")
 
     def criar_tela_cadastro(self):
         self.limpar_card()
@@ -594,16 +600,16 @@ class LoginScreen(QWidget):
         senha = self.txt_n_senha.text().strip()
         confirmacao = self.txt_confirmar_senha.text().strip()
         if not email or not senha:
-            self.lbl_status_cadastro.setText("Preencha todos os campos.")
+            self.anunciar_status(self.lbl_status_cadastro, "Preencha todos os campos.")
             return
 
         if senha != confirmacao:
-            self.lbl_status_cadastro.setText("As senhas não coincidem.")
+            self.anunciar_status(self.lbl_status_cadastro, "As senhas não coincidem.")
             self.txt_confirmar_senha.setFocus()
             return
 
         if len(senha) < 8:
-            self.lbl_status_cadastro.setText("A senha deve ter pelo menos 8 caracteres.")
+            self.anunciar_status(self.lbl_status_cadastro, "A senha deve ter pelo menos 8 caracteres.")
             self.txt_n_senha.setFocus()
             return
             
@@ -613,7 +619,7 @@ class LoginScreen(QWidget):
             self.criar_tela_login()
         except Exception as e:
             print(f"DEBUG CADASTRO: {e}")
-            self.lbl_status_cadastro.setText("Erro de conexão.")
+            self.anunciar_status(self.lbl_status_cadastro, "Erro de conexão.")
 
     def criar_tela_recuperacao(self):
         self.limpar_card()
@@ -656,7 +662,7 @@ class LoginScreen(QWidget):
         self.email_recuperando = self.txt_email_rec.text().strip()
 
         if not self.email_recuperando:
-            self.lbl_status_recuperacao.setText("Informe seu e-mail.")
+            self.anunciar_status(self.lbl_status_recuperacao, "Informe seu e-mail.")
             self.txt_email_rec.setFocus()
             return
 
@@ -670,11 +676,11 @@ class LoginScreen(QWidget):
             )
         except Exception as e:
             print(f"DEBUG RECUPERACAO: {e}")
-            self.lbl_status_recuperacao.setText("Erro de conexão. Tente novamente.")
+            self.anunciar_status(self.lbl_status_recuperacao, "Erro de conexão. Tente novamente.")
             return
 
         if not resposta.data:
-            self.lbl_status_recuperacao.setText("E-mail não encontrado.")
+            self.anunciar_status(self.lbl_status_recuperacao, "E-mail não encontrado.")
             self.txt_email_rec.setFocus()
             return
 
@@ -729,7 +735,7 @@ class LoginScreen(QWidget):
         if self.txt_cod.text().strip() == self.codigo_verificacao: 
             self.criar_tela_nova_senha()
         else: 
-            self.lbl_verificar_codigo.setText("Código incorreto!")
+            self.anunciar_status(self.lbl_verificar_codigo, "Código incorreto!")
 
     def criar_tela_nova_senha(self):
         self.limpar_card()
@@ -800,7 +806,7 @@ class LoginScreen(QWidget):
             self.criar_tela_login()
         except Exception as e:
             print(f"DEBUG ATUALIZAR: {e}")
-            self.lbl_atualizar_senha.setText("Erro ao atualizar.")
+            self.anunciar_status(self.lbl_atualizar_senha, "Erro ao atualizar.")
 
     def disparar_email(self, dest, cod):
         try:
