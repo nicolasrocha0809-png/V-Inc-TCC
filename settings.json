@@ -11,5 +11,8 @@
     },
     "geral": {
         "idioma": "pt_BR"
+    },
+    "usuario": {
+        "id_usuario_atual": 10
     }
 }
