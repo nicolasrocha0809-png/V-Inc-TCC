@@ -1,4 +1,5 @@
 import ast
+from datetime import datetime
 import json
 import os
 import operator
@@ -9,12 +10,39 @@ from urllib.request import urlopen
 
 from dotenv import load_dotenv
 
+from supabase import create_client
+from config import settings  
 from teste_cerebro import pensar
 from teste_voz import ouvir, falar
 import webbrowser
 
-
 load_dotenv()
+
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+supabase = (
+    create_client(SUPABASE_URL, SUPABASE_KEY)
+    if SUPABASE_URL and SUPABASE_KEY
+    else None
+)
+
+
+def salvar_comando_historico(comando_texto):
+    """Salva o comando no Supabase usando dinamicamente o ID do usuário ativo"""
+    if supabase:
+        try:
+           
+            user_id_atual = settings.get("usuario", "id_usuario_atual") or 10
+
+            supabase.table("historico").insert({
+                "id_usuario": user_id_atual,
+                "comando": comando_texto,
+                "data_hora": datetime.now().isoformat(),
+            }).execute()
+            print(f"DEBUG: Comando salvo no Supabase para o usuário ID -> {user_id_atual}")
+        except Exception as e:
+            print(f"Erro ao salvar histórico no assistente: {e}")
 
 
 OPERADORES_BINARIOS = {
@@ -182,9 +210,10 @@ while True:
         if eh_comando_encerramento(texto_falado):
             print("Encerrando o Sistema...")
             falar("Encerrando o Sistema...")
-
             break
            
+       
+        salvar_comando_historico(texto_falado)
 
         dicionario_resposta = pensar(texto_falado)
         historico_confirmacao = [
@@ -206,6 +235,7 @@ while True:
                 print("Encerrando o Sistema...")
                 falar("Encerrando o Sistema...")
                 raise SystemExit
+            
             dicionario_resposta = pensar(
                 texto_falado,
                 historico=historico_confirmacao,
@@ -273,7 +303,6 @@ while True:
                 # Agora você tem "40.410,50" prontinho para o print!
                 print(f'O resultado de {equacao} é: {resultado_br}')
                 falar(f'O resultado é {resultado_br}')
-
 
     except Exception as e:
         # Se algo der errado cai aqui no except

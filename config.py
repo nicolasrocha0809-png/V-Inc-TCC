@@ -11,7 +11,8 @@ class ConfigManager:
         return {
             "visual": {"tema": "dark", "fonte": "12px"},
             "audio": {"velocidade": 80, "volume": 80},  # Atualizado para incluir o volume separado
-            "geral": {"idioma": "pt_BR"}
+            "geral": {"idioma": "pt_BR"},
+            "usuario": {"id_usuario_atual": 10}  # <-- ADICIONADO: Padrão inicial
         }
 
     def load_settings(self):
