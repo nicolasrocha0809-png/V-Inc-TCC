@@ -3,10 +3,10 @@
 Este repositório contém a versão de desenvolvimento do assistente virtual V-Inc. Ele combina uma interface gráfica de segurança login simples com reconhecimento e síntese de voz para teste inicial
 
 ## Funcionalidades
-* **Tela de Acesso:** Interface construída em CustomTkinter para autenticação prévia.
+* **Tela de Acesso:** Interface construída em Pyside6 para autenticação prévia.
 * **Reconhecimento de Voz:** Transcrição de áudio usando a API Groq (modelo `whisper-large-v3`).
 * **Síntese de Voz:** Respostas geradas usando `edge_tts` (voz realista) com um sistema de segurança (fallback) para `pyttsx3` caso o computador fique offline.
-* **Fuções:** Algumas funções foram desativadas para o propósito dessa versão inicial para o teste e reconhecimento da voz
+* **Funções:** Algumas funções foram desativadas para o propósito dessa versão inicial para o teste e reconhecimento da voz
 
 ## Como rodar o projeto localmente
 

@@ -11,8 +11,15 @@ resposta.mp3
 
 # Ignorar lixo do Python
 __pycache__/
+interface/__pycache__/
 
 # Ignorar modelos de IA e dados pesados
 data/
 *.npy
 *.pt
+
+# Ignorar arquivos de log
+*.log
+
+# Ignorar arquivos de configuração do VS Code
+.vscode/
