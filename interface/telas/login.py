@@ -191,7 +191,7 @@ class LoginScreen(QWidget):
 
         self.lbl_titulo = QLabel("V-Inc"); self.lbl_titulo.setObjectName("titulo_login")
         self.lbl_logo = QLabel(); self.lbl_logo.setObjectName("logo_login")
-        logo_path = Path(__file__).resolve().parents[2] / "essa.png"
+        logo_path = Path(__file__).resolve().parents[2] / "logo.png"
         self.logo_pixmap = QPixmap(str(logo_path))
         self.atualizar_logo()
         self.lbl_sub = QLabel("Voz Inclusiva"); self.lbl_sub.setObjectName("subtitulo_login")
@@ -556,6 +556,10 @@ class LoginScreen(QWidget):
         confirmar.setPlaceholderText("••••••••")
         confirmar.setEchoMode(QLineEdit.Password)
         confirmar.setAccessibleName("Confirmar senha")
+        confirmar.setAccessibleDescription("Repita a senha para confirmar o cadastro.")
+        self.btn_mostrar_nova_senha.toggled.connect(
+            lambda visivel: confirmar.setEchoMode(QLineEdit.Normal if visivel else QLineEdit.Password)
+        )
         lbl_confirmar = QLabel("Confirmar Senha", container)
         lbl_confirmar.setObjectName("label_input")
         lbl_confirmar.setAlignment(Qt.AlignLeft)
@@ -567,17 +571,23 @@ class LoginScreen(QWidget):
         formulario.addWidget(btn_voltar, alignment=Qt.AlignCenter)
         formulario.addWidget(self.lbl_status_cadastro)
 
-        rodape = QLabel("Já tenho conta?  Entrar", container)
-        rodape.setAlignment(Qt.AlignCenter)
-        rodape.setStyleSheet("background: transparent; color: #BCE8FF; font-size: 20px; font-weight: 600; text-decoration: underline;")
-        rodape.setCursor(Qt.PointingHandCursor)
-        rodape.mousePressEvent = lambda event: self.criar_tela_login()
-        layout.addWidget(rodape)
+        self.btn_ir_login = BotaoAcessivel("Já tenho conta? Entrar", container)
+        self.btn_ir_login.setObjectName("btn_link")
+        self.btn_ir_login.setAccessibleName("Ir para tela de login")
+        self.btn_ir_login.setCursor(Qt.PointingHandCursor)
+        self.btn_ir_login.clicked.connect(self.criar_tela_login)
+        self.btn_ir_login.setStyleSheet(
+            "background: transparent; color: #BCE8FF; font-size: 20px; font-weight: 600; text-decoration: underline;"
+        )
+        layout.addWidget(self.btn_ir_login, alignment=Qt.AlignCenter)
         self.tela_atual = "cadastro"
         self.botao_acao_atual = btn_salvar
         self.botao_voltar_atual = btn_voltar
         self.atualizar_dimensoes_responsivas()
-        self.configurar_navegacao([self.txt_n_email, self.txt_n_senha, confirmar], [btn_salvar, btn_voltar])
+        self.configurar_navegacao(
+            [self.txt_n_email, self.txt_n_senha, self.btn_mostrar_nova_senha, confirmar],
+            [btn_salvar, btn_voltar, self.btn_ir_login],
+        )
 
     def acao_cadastrar(self):
         email = self.txt_n_email.text().strip()
