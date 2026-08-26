@@ -36,7 +36,7 @@ class InicioScreen(QWidget):
         self.layout_principal.setContentsMargins(40, 32, 40, 32)
         self.layout_principal.setSpacing(0)
 
-        # ---------- Barra superior (toggle Escuro/Claro) ----------
+        # ---------- Seletor de tema ----------
         self.layout_principal.addLayout(self._criar_toggle_tema())
 
         # ---------- Conteúdo central ----------
@@ -65,70 +65,66 @@ class InicioScreen(QWidget):
         )
         self.layout_content.addWidget(self.lbl_ouvindo)
 
-        # Subtítulo
-        self.lbl_subtitulo = QLabel(
-            "V-Inc is actively listening to your environment. Speak\n"
-            "clearly to issue commands or request assistance."
-        )
-        self.lbl_subtitulo.setAlignment(Qt.AlignCenter)
-        self.lbl_subtitulo.setWordWrap(True)
-        self.lbl_subtitulo.setStyleSheet(
-            f"color: {self.cor_texto_secundario}; font-size: 15px; border: none; background-color: transparent;"
-        )
-        self.lbl_subtitulo.setMaximumWidth(520)
-        self.layout_content.addWidget(self.lbl_subtitulo, alignment=Qt.AlignHCenter)
-
-        self.layout_content.addSpacing(20)
+        self.layout_content.addSpacing(12)
 
         # Card de Áudio
         self.layout_content.addWidget(self._criar_card_audio(), alignment=Qt.AlignHCenter)
 
     # ---------------------------------------------------------------
     def _criar_toggle_tema(self):
-        """Cria o seletor Escuro/Claro alinhado à direita, no topo."""
         layout_topo = QHBoxLayout()
+        layout_topo.setContentsMargins(0, 0, 0, 0)
         layout_topo.addStretch()
 
         container = QFrame()
         container.setStyleSheet(
-            f"background-color: {self.cor_card}; border: 2px solid {self.cor_outline}; border-radius: 12px;"
+            "background-color: #ffffff; border: 1px solid #ffffff; "
+            "border-radius: 12px;"
         )
+        container.setFixedSize(187, 43)
         layout_container = QHBoxLayout(container)
-        layout_container.setContentsMargins(0, 0, 0, 0)
+        layout_container.setContentsMargins(1, 1, 1, 1)
         layout_container.setSpacing(0)
 
-        self.btn_escuro = QPushButton("🌙  Escuro")
-        self.btn_claro = QPushButton("☀️  Claro")
-
+        self.btn_escuro = QPushButton("Escuro")
+        self.btn_claro = QPushButton("Claro")
         for btn in (self.btn_escuro, self.btn_claro):
+            btn.setFixedSize(91, 39)
             btn.setCursor(Qt.PointingHandCursor)
-            btn.setFixedHeight(44)
-            btn.setMinimumWidth(110)
 
-        self._estilizar_toggle(modo_escuro=True)
+        divisor = QFrame()
+        divisor.setFixedSize(1, 39)
+        divisor.setStyleSheet("background-color: #ffffff; border: none;")
 
         self.btn_escuro.clicked.connect(lambda: self._estilizar_toggle(True))
         self.btn_claro.clicked.connect(lambda: self._estilizar_toggle(False))
+        self._estilizar_toggle(True)
 
         layout_container.addWidget(self.btn_escuro)
+        layout_container.addWidget(divisor)
         layout_container.addWidget(self.btn_claro)
-
         layout_topo.addWidget(container)
         return layout_topo
 
     def _estilizar_toggle(self, modo_escuro: bool):
-        ativo = (
-            f"QPushButton {{ background-color: {self.cor_primaria}; color: {self.cor_on_primary}; "
-            f"border: none; border-radius: 10px; font-weight: bold; padding: 0 16px; }}"
+        estilo_ativo = (
+            f"background-color: {self.cor_primaria}; color: {self.cor_on_primary}; "
+            "font-weight: bold;"
         )
-        inativo = (
-            f"QPushButton {{ background-color: transparent; color: {self.cor_texto}; "
-            f"border: none; padding: 0 16px; font-weight: bold; }}"
-            f"QPushButton:hover {{ background-color: {self.cor_input_bg}; border-radius: 10px; }}"
+        estilo_inativo = (
+            f"background-color: {self.cor_fundo}; color: #ffffff; "
+            "font-weight: normal;"
         )
-        self.btn_escuro.setStyleSheet(ativo if modo_escuro else inativo)
-        self.btn_claro.setStyleSheet(inativo if modo_escuro else ativo)
+        self.btn_escuro.setStyleSheet(
+            f"QPushButton {{ {estilo_ativo if modo_escuro else estilo_inativo} "
+            "border: none; border-radius: 0; }"
+        )
+        self.btn_claro.setStyleSheet(
+            f"QPushButton {{ {estilo_inativo if modo_escuro else estilo_ativo} "
+            "border: none; border-radius: 0; }"
+        )
 
+    # ---------------------------------------------------------------
     def _criar_botao_mic(self):
         """Círculo grande do microfone, com brilho suave ao redor."""
         btn = QPushButton("🎤")
@@ -164,43 +160,43 @@ class InicioScreen(QWidget):
         card.setMaximumWidth(640)
 
         layout_card = QVBoxLayout(card)
-        layout_card.setContentsMargins(32, 32, 32, 32)
-        layout_card.setSpacing(10)
+        layout_card.setContentsMargins(24, 24, 24, 24)
+        layout_card.setSpacing(6)
 
         # Entrada de Áudio
         layout_card.addWidget(self._criar_titulo_campo("Entrada de Áudio"))
         self.mic_combo = QComboBox()
         self.mic_combo.addItems(["🎙  Microfone Padrão", "🎙  Microfone Externo"])
-        self.mic_combo.setMinimumHeight(56)
+        self.mic_combo.setMinimumHeight(44)
         self.mic_combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.mic_combo.setStyleSheet(self._estilo_combo(borda=self.cor_primaria))
+        self.mic_combo.setStyleSheet(self._estilo_combo())
         layout_card.addWidget(self.mic_combo)
 
-        layout_card.addSpacing(18)
+        layout_card.addSpacing(10)
 
         # Saída de Áudio
         layout_card.addWidget(self._criar_titulo_campo("Saída de Áudio"))
         self.speaker_combo = QComboBox()
         self.speaker_combo.addItems(["🎧  Headfone Padrão", "🎧  Alto-falantes"])
-        self.speaker_combo.setMinimumHeight(56)
+        self.speaker_combo.setMinimumHeight(44)
         self.speaker_combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.speaker_combo.setStyleSheet(self._estilo_combo(borda=self.cor_outline))
+        self.speaker_combo.setStyleSheet(self._estilo_combo())
         layout_card.addWidget(self.speaker_combo)
 
         # Divisor
         divisor = QFrame()
         divisor.setFixedHeight(2)
         divisor.setStyleSheet(f"background-color: {self.cor_outline}; border: none;")
-        layout_card.addSpacing(14)
+        layout_card.addSpacing(10)
         layout_card.addWidget(divisor)
-        layout_card.addSpacing(14)
+        layout_card.addSpacing(10)
 
         # Botões de ação
         layout_botoes = QHBoxLayout()
         layout_botoes.setSpacing(16)
 
         self.btn_parar = QPushButton("⏸  Parar de Ouvir")
-        self.btn_parar.setMinimumHeight(56)
+        self.btn_parar.setMinimumHeight(44)
         self.btn_parar.setCursor(Qt.PointingHandCursor)
         self.btn_parar.setStyleSheet(f"""
             QPushButton {{
@@ -217,7 +213,7 @@ class InicioScreen(QWidget):
         """)
 
         self.btn_config_voz = QPushButton("🎚  Configurações de Voz")
-        self.btn_config_voz.setMinimumHeight(56)
+        self.btn_config_voz.setMinimumHeight(44)
         self.btn_config_voz.setCursor(Qt.PointingHandCursor)
         self.btn_config_voz.setStyleSheet(f"""
             QPushButton {{
@@ -247,15 +243,18 @@ class InicioScreen(QWidget):
         )
         return lbl
 
-    def _estilo_combo(self, borda):
+    def _estilo_combo(self):
         return f"""
             QComboBox {{
                 background-color: {self.cor_input_bg};
                 color: {self.cor_texto};
-                border: 3px solid {borda};
+                border: 3px solid {self.cor_outline};
                 border-radius: 12px;
                 padding: 8px 40px 8px 16px;
                 font-size: 14px;
+            }}
+            QComboBox:focus {{
+                border: 3px solid {self.cor_primaria};
             }}
             QComboBox:hover {{
                 background-color: #333535;
