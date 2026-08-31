@@ -209,11 +209,11 @@ class InicioScreen(QWidget):
         layout_botoes = QHBoxLayout()
         layout_botoes.setSpacing(16)
 
-        self.btn_parar = QPushButton("⏸  Parar de Ouvir")
-        self.btn_parar.setAccessibleName("Parar de ouvir")
-        self.btn_parar.setAccessibleDescription("Interrompe o assistente de voz, se ele estiver ativo.")
+        self.btn_parar = QPushButton("Iniciar Assistente")
+        self.btn_parar.setAccessibleName("Iniciar assistente de voz")
+        self.btn_parar.setAccessibleDescription("Inicia o assistente de voz.")
         self.btn_parar.setMinimumHeight(44)
-        self.btn_parar.clicked.connect(self.parar_assistente)
+        self.btn_parar.clicked.connect(self.alternar_assistente)
         self.btn_parar.setCursor(Qt.PointingHandCursor)
         self.btn_parar.setStyleSheet(f"""
             QPushButton {{
@@ -229,7 +229,7 @@ class InicioScreen(QWidget):
             }}
         """)
 
-        self.btn_config_voz = QPushButton("🎚  Configurações de Voz")
+        self.btn_config_voz = QPushButton("Configurações de Voz")
         self.btn_config_voz.setAccessibleName("Abrir configurações de voz")
         self.btn_config_voz.setAccessibleDescription("Abre a tela de configurações do assistente.")
         self.btn_config_voz.setMinimumHeight(44)
@@ -252,6 +252,8 @@ class InicioScreen(QWidget):
         layout_botoes.addWidget(self.btn_parar)
         layout_botoes.addWidget(self.btn_config_voz)
         layout_card.addLayout(layout_botoes)
+
+        self._atualizar_estado_controles()
 
         return card
 
@@ -278,6 +280,7 @@ class InicioScreen(QWidget):
 
         self.assistente_ativo = True
         self.lbl_ouvindo.setText("Assistente ativado — ouvindo")
+        self._atualizar_estado_controles()
         self.btn_mic.setAccessibleName("Parar assistente de voz")
         self.btn_mic.setToolTip("Parar o assistente de voz")
         self.btn_parar.setEnabled(True)
@@ -320,7 +323,22 @@ class InicioScreen(QWidget):
     def _assistente_finalizado(self, *_args):
         self.assistente_ativo = False
         self.lbl_ouvindo.setText("Assistente parado")
+        self._atualizar_estado_controles()
         if hasattr(self, "btn_mic"):
+            self.btn_mic.setAccessibleName("Ativar assistente de voz")
+            self.btn_mic.setToolTip("Ativar o assistente de voz")
+
+    def _atualizar_estado_controles(self):
+        if self.assistente_ativo:
+            self.btn_parar.setText("Parar de Ouvir")
+            self.btn_parar.setAccessibleName("Parar de ouvir")
+            self.btn_parar.setAccessibleDescription("Interrompe o assistente de voz ativo.")
+            self.btn_mic.setAccessibleName("Parar assistente de voz")
+            self.btn_mic.setToolTip("Parar o assistente de voz")
+        else:
+            self.btn_parar.setText("Iniciar Assistente")
+            self.btn_parar.setAccessibleName("Iniciar assistente de voz")
+            self.btn_parar.setAccessibleDescription("Inicia o assistente de voz.")
             self.btn_mic.setAccessibleName("Ativar assistente de voz")
             self.btn_mic.setToolTip("Ativar o assistente de voz")
 

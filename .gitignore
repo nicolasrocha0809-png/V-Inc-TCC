@@ -23,3 +23,8 @@ data/
 
 # Ignorar arquivos de configuração do VS Code
 .vscode/
+
+# Configurações locais geradas durante a execução
+settings.json
+config.json
+.v-inc/

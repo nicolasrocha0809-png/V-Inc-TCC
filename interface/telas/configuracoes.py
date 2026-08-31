@@ -3,6 +3,23 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QComboBox,
                                 QSlider, QPushButton, QApplication)
 from PySide6.QtCore import Qt
 from config import settings
+import speech_recognition as sr
+
+
+def listar_microfones():
+    try:
+        return sr.Microphone.list_microphone_names()
+    except Exception:
+        return []
+
+
+def listar_saidas_audio():
+    try:
+        from pygame._sdl2 import audio as sdl_audio
+        saidas = sdl_audio.get_audio_device_names(False)
+        return [nome.decode() if isinstance(nome, bytes) else nome for nome in saidas]
+    except Exception:
+        return []
 from interface.prefs_manager import PrefsManager
 
 class ConfiguracoesScreen(QWidget):
@@ -63,6 +80,37 @@ class ConfiguracoesScreen(QWidget):
         self.slider_velocidade.setValue(velocidade_atual)
         self.layout.addWidget(self.slider_velocidade)
 
+        # --- Dispositivos de áudio ---
+        self.lbl_microfone = QLabel("Microfone de entrada:")
+        self.combo_microfone = QComboBox()
+        self.combo_microfone.setAccessibleName("Microfone de entrada")
+        self.combo_microfone.setAccessibleDescription("Escolha o microfone usado para ouvir seus comandos.")
+        microfones = listar_microfones()
+        self.combo_microfone.addItems(microfones or ["Padrão do sistema"])
+        microfone_atual = settings.get("audio", "microfone")
+        if microfone_atual:
+            indice = self.combo_microfone.findText(microfone_atual)
+            if indice >= 0:
+                self.combo_microfone.setCurrentIndex(indice)
+        self.lbl_microfone.setBuddy(self.combo_microfone)
+        self.layout.addWidget(self.lbl_microfone)
+        self.layout.addWidget(self.combo_microfone)
+
+        self.lbl_saida = QLabel("Saída de áudio:")
+        self.combo_saida = QComboBox()
+        self.combo_saida.setAccessibleName("Saída de áudio")
+        self.combo_saida.setAccessibleDescription("Escolha o dispositivo que reproduzirá a voz do assistente.")
+        saidas = listar_saidas_audio()
+        self.combo_saida.addItems(saidas or ["Padrão do sistema"])
+        saida_atual = settings.get("audio", "saida")
+        if saida_atual:
+            indice = self.combo_saida.findText(saida_atual)
+            if indice >= 0:
+                self.combo_saida.setCurrentIndex(indice)
+        self.lbl_saida.setBuddy(self.combo_saida)
+        self.layout.addWidget(self.lbl_saida)
+        self.layout.addWidget(self.combo_saida)
+
         # --- Botão Salvar ---
         self.btn_aplicar = QPushButton("Aplicar e Salvar Alterações")
         self.btn_aplicar.clicked.connect(self.aplicar_configuracoes)
@@ -78,6 +126,8 @@ class ConfiguracoesScreen(QWidget):
         novo_idioma = self.combo_idioma.currentText()
         novo_volume = self.slider_volume.value()
         nova_velocidade = self.slider_velocidade.value()
+        novo_microfone = self.combo_microfone.currentText()
+        nova_saida = self.combo_saida.currentText()
 
         # Atualiza o arquivo de configurações local (settings)
         settings.set("visual", "tema", novo_tema)
@@ -85,6 +135,8 @@ class ConfiguracoesScreen(QWidget):
         settings.set("geral", "idioma", novo_idioma)
         settings.set("audio", "volume", novo_volume)
         settings.set("audio", "velocidade", nova_velocidade)
+        settings.set("audio", "microfone", novo_microfone)
+        settings.set("audio", "saida", nova_saida)
 
         # Salva via PrefsManager no Supabase
         self.prefs_manager.salvar_preferencia("tema", novo_tema)
