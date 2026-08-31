@@ -82,7 +82,7 @@ class InicioScreen(QWidget):
 
         container = QFrame()
         container.setStyleSheet(
-            "background-color: #ffffff; border: 1px solid #ffffff; "
+            "background-color: #1c1c1c; border: 1px solid #4f4f4f; "
             "border-radius: 12px;"
         )
         container.setFixedSize(187, 43)
@@ -98,7 +98,7 @@ class InicioScreen(QWidget):
 
         divisor = QFrame()
         divisor.setFixedSize(1, 39)
-        divisor.setStyleSheet("background-color: #ffffff; border: none;")
+        divisor.setStyleSheet("background-color: #1c1c1c; border: none;")
 
         self.btn_escuro.clicked.connect(lambda: self._estilizar_toggle(True))
         self.btn_claro.clicked.connect(lambda: self._estilizar_toggle(False))
@@ -121,11 +121,11 @@ class InicioScreen(QWidget):
         )
         self.btn_escuro.setStyleSheet(
             f"QPushButton {{ {estilo_ativo if modo_escuro else estilo_inativo} "
-            "border: none; border-radius: 0; }"
+            "border: none; border-radius: 10px; }"
         )
         self.btn_claro.setStyleSheet(
             f"QPushButton {{ {estilo_inativo if modo_escuro else estilo_ativo} "
-            "border: none; border-radius: 0; }"
+            "border: none; border-radius: 10px; }"
         )
 
     # ---------------------------------------------------------------
