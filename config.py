@@ -12,7 +12,7 @@ class ConfigManager:
             "visual": {"tema": "dark", "fonte": "12px"},
             "audio": {"velocidade": 80, "volume": 80},  
             "geral": {"idioma": "pt_BR"},
-            "usuario": {"id_usuario_atual": 10}  
+            "usuario": {"id_usuario_atual": None}
         }
 
     def load_settings(self):

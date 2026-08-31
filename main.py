@@ -5,14 +5,16 @@ from dotenv import load_dotenv
 # Forca a camada de acessibilidade do Qt para leitores de tela (NVDA/JAWS).
 os.environ.setdefault("QT_ACCESSIBILITY", "1")
 
+# 1. Carrega as variáveis do arquivo .env localizado na raiz
+load_dotenv()
+
+
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QAccessible
 from supabase import create_client
 from interface.janela import JanelaPrincipal
 from config import settings
 from interface.prefs_manager import PrefsManager
-# 1. Carrega as variáveis do arquivo .env localizado na raiz
-load_dotenv()
 
 # 2. Inicializa o cliente do Supabase com as variáveis de ambiente
 SUPABASE_URL = os.getenv("SUPABASE_URL")

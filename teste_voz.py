@@ -79,7 +79,7 @@ def ouvir():
         lang_whisper = cfg_idioma["whisper"]
 
         with sr.Microphone() as mic:
-            print(f"\n🎤 Assistente Ativo e Ouvindo ({lang_whisper})...")
+            print(f"\nAssistente ativo e ouvindo ({lang_whisper})...")
             rec.pause_threshold = 1.5
             rec.adjust_for_ambient_noise(mic)
             audio = rec.listen(mic)
@@ -87,7 +87,7 @@ def ouvir():
             with open('meu_audio.wav', 'wb') as arquivo_wav:
                 arquivo_wav.write(audio.get_wav_data())
                 
-            print("⏳ Processando...")
+            print("Processando audio...")
 
             with open('meu_audio.wav', 'rb') as arquivo_lido:
                 transcricao = cliente.audio.transcriptions.create(

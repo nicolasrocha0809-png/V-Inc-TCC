@@ -1,7 +1,7 @@
 import sys, random, bcrypt, os, threading
 from pathlib import Path
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QBoxLayout, QLabel, QLineEdit, QPushButton, QFrame, QStyle, QStyleOptionButton, QToolButton, QSizePolicy, QScrollArea
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QPixmap, QFont, QFontMetrics, QKeySequence, QShortcut, QPainter, QPen, QColor, QIcon, QAccessible, QAccessibleAnnouncementEvent
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -138,6 +138,11 @@ class LoginScreen(QWidget):
         self.main_layout.addWidget(self.scroll_area, stretch=1)
         self.criar_tela_login()
     def limpar_card(self):
+        # As telas são reconstruídas; elimina referências Python a widgets
+        # que serão destruídos pelo Qt durante a troca de formulário.
+        self.lbl_titulo = None
+        self.lbl_sub = None
+        self.lbl_logo = None
         while self.card_layout.count():
             item = self.card_layout.takeAt(0)
             if item.widget():
@@ -254,12 +259,14 @@ class LoginScreen(QWidget):
     def atualizar_dimensoes_responsivas(self):
         largura = max(320, self.width())
         fator_largura = max(0.0, min(1.0, (largura - 420) / 680))
-        fonte_titulo = QFont(self.lbl_titulo.font())
-        fonte_titulo.setPointSizeF(20.0 + (14.0 * fator_largura))
-        self.lbl_titulo.setFont(fonte_titulo)
-        fonte_subtitulo = QFont(self.lbl_sub.font())
-        fonte_subtitulo.setPointSizeF(18.0 + (10.0 * fator_largura))
-        self.lbl_sub.setFont(fonte_subtitulo)
+        if self.lbl_titulo is not None:
+            fonte_titulo = QFont(self.lbl_titulo.font())
+            fonte_titulo.setPointSizeF(20.0 + (14.0 * fator_largura))
+            self.lbl_titulo.setFont(fonte_titulo)
+        if self.lbl_sub is not None:
+            fonte_subtitulo = QFont(self.lbl_sub.font())
+            fonte_subtitulo.setPointSizeF(18.0 + (10.0 * fator_largura))
+            self.lbl_sub.setFont(fonte_subtitulo)
         largura_controles = max(240, min(420, largura - (56 if largura < 760 else 120)))
         for botao in self.findChildren(QToolButton):
             tamanho_botao = max(40, min(48, int(40 + (8 * fator_largura))))
@@ -325,8 +332,20 @@ class LoginScreen(QWidget):
             secundario.layout().activate()
     def configurar_navegacao(self, campos, botoes):
         controles = campos + botoes
-        for atual, proximo in zip(controles, controles[1:]):
-            self.setTabOrder(atual, proximo)
+
+        def aplicar_ordem_tab():
+            for atual, proximo in zip(controles, controles[1:]):
+                try:
+                    janela_atual = atual.window()
+                    janela_proxima = proximo.window()
+                    if janela_atual is not None and janela_atual is janela_proxima:
+                        self.setTabOrder(atual, proximo)
+                except RuntimeError:
+                    # O controle pode ter sido removido durante a troca de tela.
+                    continue
+
+        # Aguarda os widgets entrarem na mesma janela antes de configurar a ordem.
+        QTimer.singleShot(0, aplicar_ordem_tab)
         for campo in campos:
             if hasattr(campo, "returnPressed"):
                 campo.returnPressed.connect(self.ativar_acao_principal)
@@ -362,7 +381,12 @@ class LoginScreen(QWidget):
     def anunciar_status(self, label, mensagem):
         label.setText(mensagem)
         evento = QAccessibleAnnouncementEvent(label, mensagem)
-        evento.setPoliteness(QAccessibleAnnouncementEvent.Politeness.Assertive)
+        try:
+            # Algumas versões do PySide6 não expõem o enum Politeness.
+            evento.setPoliteness(QAccessibleAnnouncementEvent.Politeness.Assertive)
+        except AttributeError:
+            # O anúncio continua válido com a política padrão da biblioteca.
+            pass
         QAccessible.updateAccessibility(evento)
 
     def voltar_para_login(self):
@@ -719,13 +743,42 @@ class LoginScreen(QWidget):
         self.card_layout.addWidget(container, alignment=Qt.AlignCenter)
         return layout
     def atualizar_senha_supabase(self):
+        senha = self.txt_n_senha.text().strip()
+
+        if not senha:
+            self.anunciar_status(
+                self.lbl_atualizar_senha,
+                "Informe uma nova senha."
+            )
+            self.txt_n_senha.setFocus()
+            return
+
+        if len(senha) < 8:
+            self.anunciar_status(
+                self.lbl_atualizar_senha,
+                "A nova senha deve ter pelo menos 8 caracteres."
+            )
+            self.txt_n_senha.setFocus()
+            return
+
         try:
-            hash_s = bcrypt.hashpw(self.txt_n_senha.text().strip().encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-            self.supabase.table("usuarios").update({"senha_hash": hash_s}).eq("email", self.email_recuperando).execute()
+            hash_s = bcrypt.hashpw(
+                senha.encode("utf-8"),
+                bcrypt.gensalt(),
+            ).decode("utf-8")
+
+            self.supabase.table("usuarios").update(
+                {"senha_hash": hash_s}
+            ).eq("email", self.email_recuperando).execute()
+
             self.criar_tela_login()
         except Exception as e:
             print(f"DEBUG ATUALIZAR: {e}")
-            self.anunciar_status(self.lbl_atualizar_senha, "Erro ao atualizar.")
+            self.anunciar_status(
+                self.lbl_atualizar_senha,
+                "Erro ao atualizar."
+            )
+
 
     def disparar_email(self, dest, cod):
         try:

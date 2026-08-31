@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame, QComboBox, QPushButton
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QProcess
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
@@ -27,6 +27,9 @@ class InicioScreen(QWidget):
         self.cor_erro = "#ffb4ab"                       # error
         self.cor_on_erro = "#690005"                     # on-error
 
+        self.processo_assistente = None
+        self.assistente_ativo = False
+
         self.setup_ui()
 
     def setup_ui(self):
@@ -52,8 +55,8 @@ class InicioScreen(QWidget):
         # Botão circular do microfone
         self.layout_content.addWidget(self._criar_botao_mic(), alignment=Qt.AlignHCenter)
 
-        # Título "OUVINDO"
-        self.lbl_ouvindo = QLabel("OUVINDO")
+        # Estado textual acessível do assistente
+        self.lbl_ouvindo = QLabel("Assistente parado")
         self.lbl_ouvindo.setAlignment(Qt.AlignCenter)
         fonte_titulo = QFont()
         fonte_titulo.setPointSize(24)
@@ -126,10 +129,17 @@ class InicioScreen(QWidget):
 
     # ---------------------------------------------------------------
     def _criar_botao_mic(self):
-        """Círculo grande do microfone, com brilho suave ao redor."""
+        """Círculo grande do microfone, com controle acessível do assistente."""
         btn = QPushButton("🎤")
+        self.btn_mic = btn
+        btn.setAccessibleName("Ativar assistente de voz")
+        btn.setAccessibleDescription(
+            "Inicia ou interrompe o assistente de voz. Também pode ser acionado com Enter ou Espaço."
+        )
+        btn.setToolTip("Ativar ou parar o assistente de voz")
         btn.setFixedSize(180, 180)
         btn.setCursor(Qt.PointingHandCursor)
+        btn.clicked.connect(self.alternar_assistente)
         btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {self.cor_primaria};
@@ -166,7 +176,9 @@ class InicioScreen(QWidget):
         # Entrada de Áudio
         layout_card.addWidget(self._criar_titulo_campo("Entrada de Áudio"))
         self.mic_combo = QComboBox()
-        self.mic_combo.addItems(["🎙  Microfone Padrão", "🎙  Microfone Externo"])
+        self.mic_combo.addItems(["Microfone Padrão", "Microfone Externo"])
+        self.mic_combo.setAccessibleName("Entrada de áudio")
+        self.mic_combo.setAccessibleDescription("Selecione o microfone que será usado pelo assistente.")
         self.mic_combo.setMinimumHeight(44)
         self.mic_combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.mic_combo.setStyleSheet(self._estilo_combo())
@@ -177,7 +189,9 @@ class InicioScreen(QWidget):
         # Saída de Áudio
         layout_card.addWidget(self._criar_titulo_campo("Saída de Áudio"))
         self.speaker_combo = QComboBox()
-        self.speaker_combo.addItems(["🎧  Headfone Padrão", "🎧  Alto-falantes"])
+        self.speaker_combo.addItems(["Headset Padrão", "Alto-falantes"])
+        self.speaker_combo.setAccessibleName("Saída de áudio")
+        self.speaker_combo.setAccessibleDescription("Selecione o dispositivo de saída das respostas do assistente.")
         self.speaker_combo.setMinimumHeight(44)
         self.speaker_combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.speaker_combo.setStyleSheet(self._estilo_combo())
@@ -196,7 +210,10 @@ class InicioScreen(QWidget):
         layout_botoes.setSpacing(16)
 
         self.btn_parar = QPushButton("⏸  Parar de Ouvir")
+        self.btn_parar.setAccessibleName("Parar de ouvir")
+        self.btn_parar.setAccessibleDescription("Interrompe o assistente de voz, se ele estiver ativo.")
         self.btn_parar.setMinimumHeight(44)
+        self.btn_parar.clicked.connect(self.parar_assistente)
         self.btn_parar.setCursor(Qt.PointingHandCursor)
         self.btn_parar.setStyleSheet(f"""
             QPushButton {{
@@ -213,7 +230,10 @@ class InicioScreen(QWidget):
         """)
 
         self.btn_config_voz = QPushButton("🎚  Configurações de Voz")
+        self.btn_config_voz.setAccessibleName("Abrir configurações de voz")
+        self.btn_config_voz.setAccessibleDescription("Abre a tela de configurações do assistente.")
         self.btn_config_voz.setMinimumHeight(44)
+        self.btn_config_voz.clicked.connect(self.abrir_configuracoes)
         self.btn_config_voz.setCursor(Qt.PointingHandCursor)
         self.btn_config_voz.setStyleSheet(f"""
             QPushButton {{
@@ -234,6 +254,84 @@ class InicioScreen(QWidget):
         layout_card.addLayout(layout_botoes)
 
         return card
+
+    def alternar_assistente(self):
+        if self.assistente_ativo:
+            self.parar_assistente()
+        else:
+            self.iniciar_assistente()
+
+    def iniciar_assistente(self):
+        if self.processo_assistente and self.processo_assistente.state() != QProcess.NotRunning:
+            return
+
+        caminho_assistente = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            "assistente.py",
+        )
+        self.processo_assistente = QProcess(self)
+        self.processo_assistente.setProcessChannelMode(QProcess.MergedChannels)
+        self.processo_assistente.readyReadStandardOutput.connect(self._ler_saida_assistente)
+        self.processo_assistente.errorOccurred.connect(self._erro_assistente)
+        self.processo_assistente.finished.connect(self._assistente_finalizado)
+        self.processo_assistente.start(sys.executable, ["-u", caminho_assistente])
+
+        self.assistente_ativo = True
+        self.lbl_ouvindo.setText("Assistente ativado — ouvindo")
+        self.btn_mic.setAccessibleName("Parar assistente de voz")
+        self.btn_mic.setToolTip("Parar o assistente de voz")
+        self.btn_parar.setEnabled(True)
+
+    def parar_assistente(self):
+        if not self.processo_assistente:
+            self._assistente_finalizado()
+            return
+
+        if self.processo_assistente.state() != QProcess.NotRunning:
+            self.processo_assistente.terminate()
+            if not self.processo_assistente.waitForFinished(1500):
+                self.processo_assistente.kill()
+                self.processo_assistente.waitForFinished(500)
+        else:
+            self._assistente_finalizado()
+
+    def _ler_saida_assistente(self):
+        if not self.processo_assistente:
+            return
+        saida = bytes(self.processo_assistente.readAllStandardOutput()).decode(
+            "utf-8", errors="replace"
+        ).strip()
+        if not saida:
+            return
+        print(saida)
+        ultima_linha = saida.splitlines()[-1]
+        if "Ouvindo" in ultima_linha or "ouvindo" in ultima_linha:
+            self.lbl_ouvindo.setText("Assistente ativado — ouvindo")
+        elif "Processando" in ultima_linha:
+            self.lbl_ouvindo.setText("Assistente ativado — processando")
+        elif "Encerrando" in ultima_linha:
+            self.lbl_ouvindo.setText("Assistente parado")
+
+    def _erro_assistente(self, erro):
+        if erro == QProcess.FailedToStart:
+            self.lbl_ouvindo.setText("Não foi possível iniciar o assistente")
+            self.assistente_ativo = False
+
+    def _assistente_finalizado(self, *_args):
+        self.assistente_ativo = False
+        self.lbl_ouvindo.setText("Assistente parado")
+        if hasattr(self, "btn_mic"):
+            self.btn_mic.setAccessibleName("Ativar assistente de voz")
+            self.btn_mic.setToolTip("Ativar o assistente de voz")
+
+    def abrir_configuracoes(self):
+        janela = self.window()
+        if hasattr(janela, "mudar_tela"):
+            janela.mudar_tela(5)
+
+    def closeEvent(self, event):
+        self.parar_assistente()
+        event.accept()
 
     def _criar_titulo_campo(self, texto):
         lbl = QLabel(texto)
