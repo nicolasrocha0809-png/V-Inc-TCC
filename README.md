@@ -3,10 +3,10 @@
 Este repositório contém a versão de desenvolvimento do assistente virtual V-Inc. Ele combina uma interface gráfica de segurança login simples com reconhecimento e síntese de voz para teste inicial
 
 ## Funcionalidades
-* **Tela de Acesso:** Interface construída em CustomTkinter para autenticação prévia.
+* **Tela de Acesso:** Interface construída em Pyside6 para autenticação prévia.
 * **Reconhecimento de Voz:** Transcrição de áudio usando a API Groq (modelo `whisper-large-v3`).
 * **Síntese de Voz:** Respostas geradas usando `edge_tts` (voz realista) com um sistema de segurança (fallback) para `pyttsx3` caso o computador fique offline.
-* **Fuções:** Algumas funções foram desativadas para o propósito dessa versão inicial para o teste e reconhecimento da voz
+* **Funções:** Algumas funções foram desativadas para o propósito dessa versão inicial para o teste e reconhecimento da voz
 
 ## Como rodar o projeto localmente
 
@@ -16,10 +16,10 @@ Este repositório contém a versão de desenvolvimento do assistente virtual V-I
    `.\.venv\Scripts\Activate.ps1`
 3. Instale as dependências:
    `pip install -r requirements.txt`
-   `pip install python-dotenv supabase bcrypt customtkinter`
 4. Crie um arquivo `.env` na raiz do projeto e configure as suas chaves e credenciais conforme o modelo abaixo:
    ```env
    CHAVE_GROQ=sua_chave_groq_aqui
+   YOUTUBE_API_KEY=sua_chave_youtube_api_aqui
    SUPABASE_URL=sua_url_do_supabase_aqui
    SUPABASE_KEY=sua_chave_anon_do_supabase_aqui
    EMAIL_REMETENTE=seu_email_remetente_gmail_aqui

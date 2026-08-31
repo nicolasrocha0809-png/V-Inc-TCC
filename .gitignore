@@ -1,5 +1,6 @@
 # Ignorar o ambiente virtual
 .venv/
+venv/
 
 # Ignorar o cofre de chaves
 .env
@@ -10,8 +11,20 @@ resposta.mp3
 
 # Ignorar lixo do Python
 __pycache__/
+interface/__pycache__/
 
 # Ignorar modelos de IA e dados pesados
 data/
 *.npy
 *.pt
+
+# Ignorar arquivos de log
+*.log
+
+# Ignorar arquivos de configuração do VS Code
+.vscode/
+
+# Configurações locais geradas durante a execução
+settings.json
+config.json
+.v-inc/

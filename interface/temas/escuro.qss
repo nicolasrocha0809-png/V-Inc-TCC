@@ -1,0 +1,65 @@
+/* Fundo Geral  */
+QWidget {
+    background-color: #0F172A;
+    color: #F1F5F9;
+}
+
+/* Card de Login - */
+#login_card {
+    background-color: #1E293B !important; 
+    border: 1px solid #334155;
+}
+#login_card * {
+    background-color: transparent !important;
+}
+
+#logo_login { color: #7DD3FC; }
+#titulo_login { color: #FFFFFF; }
+#subtitulo_login { color: #94A3B8; }
+
+#label_input { color: #E2E8F0; }
+
+
+QLineEdit {
+    background-color: #0F172A;
+    color: #F1F5F9;
+    border-color: #334155;
+}
+
+QLineEdit:focus {
+    border-color: #7DD3FC;
+}
+
+/* Botão de Entrar  */
+#btn_entrar {
+    background-color: #7DD3FC;
+    color: #0F172A;
+}
+
+#btn_entrar:hover {
+    background-color: #BAE6FD;
+}
+
+/* Botões Secundários */
+#btn_secundario {
+    background-color: transparent;
+    border: 1px solid #475569;
+    color: #F1F5F9;
+}
+
+#btn_secundario:hover {
+    background-color: #334155;
+}
+
+#btn_link {
+    color: #94A3B8;
+}
+
+#btn_link:hover {
+    color: #F1F5F9;
+}
+
+/* Mensagens de erro*/
+#status_msg {
+    color: #F87171; 
+}
