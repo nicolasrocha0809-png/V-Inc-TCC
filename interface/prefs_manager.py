@@ -22,7 +22,7 @@ class PrefsManager:
     def carregar(self):
         """Retorna as preferências em formato compatível com a tela antiga."""
         return {
-            "tema": settings.get("visual", "tema") or "dark",
+            "tema": settings.get("visual", "tema") or "escuro",
             "fonte": settings.get("visual", "fonte") or "12px",
             "idioma": settings.get("geral", "idioma") or "pt_BR",
             "volume": settings.get("audio", "volume") or 80,
@@ -70,7 +70,7 @@ class PrefsManager:
         try:
             dados_upsert = {
                 "user_id": self.user_id,
-                "tema": prefs.get("tema", "dark"),
+                "tema": prefs.get("tema", "escuro"),
                 "fonte": prefs.get("fonte", "12px"),
                 "idioma": prefs.get("idioma", "pt_BR"),
                 "volume": int(prefs.get("volume", 80)),

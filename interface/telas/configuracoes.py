@@ -3,8 +3,24 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QComboBox,
                                 QSlider, QPushButton, QApplication)
 from PySide6.QtCore import Qt
 from config import settings
+import speech_recognition as sr
+
+
+def listar_microfones():
+    try:
+        return sr.Microphone.list_microphone_names()
+    except Exception:
+        return []
+
+
+def listar_saidas_audio():
+    try:
+        from pygame._sdl2 import audio as sdl_audio
+        saidas = sdl_audio.get_audio_device_names(False)
+        return [nome.decode() if isinstance(nome, bytes) else nome for nome in saidas]
+    except Exception:
+        return []
 from interface.prefs_manager import PrefsManager
-from interface.audio_devices import listar_dispositivos, nomes_com_padrao
 
 class ConfiguracoesScreen(QWidget):
     def __init__(self, parent=None, supabase_client=None, user_id=None):
@@ -69,8 +85,8 @@ class ConfiguracoesScreen(QWidget):
         self.combo_microfone = QComboBox()
         self.combo_microfone.setAccessibleName("Microfone de entrada")
         self.combo_microfone.setAccessibleDescription("Escolha o microfone usado para ouvir seus comandos.")
-        microfones, _ = listar_dispositivos()
-        self.combo_microfone.addItems(nomes_com_padrao(microfones))
+        microfones = listar_microfones()
+        self.combo_microfone.addItems(microfones or ["Padrão do sistema"])
         microfone_atual = settings.get("audio", "microfone")
         if microfone_atual:
             indice = self.combo_microfone.findText(microfone_atual)
@@ -84,8 +100,8 @@ class ConfiguracoesScreen(QWidget):
         self.combo_saida = QComboBox()
         self.combo_saida.setAccessibleName("Saída de áudio")
         self.combo_saida.setAccessibleDescription("Escolha o dispositivo que reproduzirá a voz do assistente.")
-        _, saidas = listar_dispositivos()
-        self.combo_saida.addItems(nomes_com_padrao(saidas))
+        saidas = listar_saidas_audio()
+        self.combo_saida.addItems(saidas or ["Padrão do sistema"])
         saida_atual = settings.get("audio", "saida")
         if saida_atual:
             indice = self.combo_saida.findText(saida_atual)
