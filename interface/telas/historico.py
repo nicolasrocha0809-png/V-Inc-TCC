@@ -47,7 +47,6 @@ class HistoricoScreen(QWidget):
     if self.supabase:
       self.carregar_historico()
     else:
-      print(f"DEBUG: Supabase={self.supabase}")
       self.list_widget.addItem("Conexão com o Supabase indisponível.")
 
   def carregar_historico(self):
@@ -57,8 +56,6 @@ class HistoricoScreen(QWidget):
 
       # Pega o ID passado por parâmetro ou busca direto nas configurações ativas
       usuario_ativo = self.user_id or settings.get("usuario", "id_usuario_atual")
-
-      print(f"DEBUG: Tentando buscar histórico para o usuário ID -> {usuario_ativo}")
 
       if not usuario_ativo:
         self.list_widget.addItem("Nenhum usuário autenticado encontrado.")
@@ -73,9 +70,7 @@ class HistoricoScreen(QWidget):
           .execute()
       )
 
-      print(f"DEBUG: Resposta completa do Supabase: {response}")
       dados = response.data
-      print(f"DEBUG: Dados encontrados: {dados}")
 
       if not dados:
         self.list_widget.addItem("Nenhum comando registrado ainda para este usuário.")

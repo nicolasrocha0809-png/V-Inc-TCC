@@ -203,6 +203,146 @@ def extrair_canal_para_ultimo_video(alvo):
     canal = re.sub(r"\s+", " ", canal).strip(" .?!")
     return canal or alvo
 
+
+PLATAFORMAS_LIVE = {
+    "youtube": {
+        "nome": "YouTube",
+        "aliases": ("youtube", "you tube"),
+        "busca": "https://www.youtube.com/results?search_query={consulta}",
+        "canal": "https://www.youtube.com/@{canal}",
+    },
+    "twitch": {
+        "nome": "Twitch",
+        "aliases": ("twitch",),
+        "busca": "https://www.twitch.tv/search?term={consulta}",
+        "canal": "https://www.twitch.tv/{canal}",
+    },
+    "kick": {
+        "nome": "Kick",
+        "aliases": ("kick", "kick.com", "kik"),
+        "busca": "https://kick.com/search?query={consulta}",
+        "canal": "https://kick.com/{canal}",
+    },
+    "instagram": {
+        "nome": "Instagram",
+        "aliases": ("instagram", "insta"),
+        "busca": "https://www.instagram.com/explore/search/keyword/?q={consulta}",
+        "canal": "https://www.instagram.com/{canal}/",
+    },
+    "tiktok": {
+        "nome": "TikTok",
+        "aliases": ("tiktok", "tik tok"),
+        "busca": "https://www.tiktok.com/search?q={consulta}",
+        "canal": "https://www.tiktok.com/@{canal}",
+    },
+    "facebook": {
+        "nome": "Facebook",
+        "aliases": ("facebook", "facebook live", "face"),
+        "busca": "https://www.facebook.com/search/videos?q={consulta}",
+        "canal": "https://www.facebook.com/{canal}",
+    },
+}
+
+
+def identificar_plataforma(site):
+    site_normalizado = normalizar_texto(site or "")
+    for identificador, dados in PLATAFORMAS_LIVE.items():
+        if any(alias in site_normalizado for alias in dados["aliases"]):
+            return identificador, dados
+    return "youtube", PLATAFORMAS_LIVE["youtube"]
+
+
+def limpar_soletracao(texto):
+    """Remove soletrações do tipo 'Pichone, P-I-X-O-N-E' geradas pelo Whisper."""
+    return re.sub(
+        r"\s*,?\s*[A-Za-zÀ-ÿ](?:\s*-\s*[A-Za-zÀ-ÿ]){2,}",
+        "",
+        texto or "",
+    ).strip(" ,.-")
+
+
+def extrair_identificador_canal(alvo):
+    """Obtém o nome do canal ou perfil mencionado no comando."""
+    texto = limpar_soletracao(alvo)
+    padroes = (
+        r"\b(?:canal|perfil|streamer)\s+@?([a-zA-Z0-9_\.]+)",
+        r"\b(?:do|da|de)\s+@?([a-zA-Z0-9_\.]+)\s+(?:no|na|em)\b",
+    )
+    for padrao in padroes:
+        correspondencia = re.search(padrao, texto, flags=re.IGNORECASE)
+        if correspondencia:
+            return correspondencia.group(1).strip(".")
+    return None
+
+
+def extrair_soletracao(texto):
+    """Reconstrói letras faladas em formatos como P-I-X-O-N-E."""
+    correspondencia = re.search(
+        r"\b[A-Za-zÀ-ÿ](?:\s*[-,]\s*[A-Za-zÀ-ÿ]){2,}\b",
+        texto or "",
+        flags=re.IGNORECASE,
+    )
+    if not correspondencia:
+        return None
+    return "".join(re.findall(r"[A-Za-zÀ-ÿ]", correspondencia.group(0))).upper()
+
+
+def substituir_nome_no_alvo(alvo, nome_antigo, nome_novo):
+    if not alvo or not nome_antigo:
+        return alvo
+    return re.sub(
+        re.escape(nome_antigo),
+        nome_novo,
+        alvo,
+        count=1,
+        flags=re.IGNORECASE,
+    )
+
+
+def resolver_soletracao(texto_falado, dicionario):
+    """Confirma divergências e devolve também o nome escolhido pelo usuário."""
+    if dicionario.get("acao") != "pesquisar_video":
+        return dicionario, None
+
+    soletrado = extrair_soletracao(texto_falado)
+    nome_falado = extrair_identificador_canal(dicionario.get("alvo"))
+    if not soletrado or not nome_falado:
+        return dicionario, None
+
+    if normalizar_texto(nome_falado) == normalizar_texto(soletrado):
+        return dicionario, nome_falado
+
+    soletrado_formatado = "-".join(soletrado)
+    pergunta = (
+        f"Você falou '{nome_falado}', mas informou as letras "
+        f"{soletrado_formatado}. "
+        "Devo pesquisar usando o nome falado ou o nome soletrado?"
+    )
+    print(pergunta)
+    falar(pergunta)
+    resposta = ouvir()
+    resposta_normalizada = normalizar_texto(resposta)
+
+    if any(palavra in resposta_normalizada for palavra in (
+        "soletrado", "soletracao", "letras", "segundo", "pixone"
+    )):
+        nome_escolhido = soletrado
+        dicionario["alvo"] = substituir_nome_no_alvo(
+            dicionario.get("alvo"), nome_falado, nome_escolhido
+        )
+    elif any(palavra in resposta_normalizada for palavra in (
+        "falado", "primeiro", "pichone"
+    )):
+        nome_escolhido = nome_falado
+    else:
+        falar("Vou usar o nome soletrado para evitar confusão.")
+        nome_escolhido = soletrado
+        dicionario["alvo"] = substituir_nome_no_alvo(
+            dicionario.get("alvo"), nome_falado, nome_escolhido
+        )
+    return dicionario, nome_escolhido
+
+
 print("Iniciando o V-Inc...")
 falar("Iniciando o V-Inc...")
 
@@ -219,6 +359,9 @@ while True:
         salvar_comando_historico(texto_falado)
 
         dicionario_resposta = pensar(texto_falado)
+        dicionario_resposta, nome_escolhido = resolver_soletracao(
+            texto_falado, dicionario_resposta
+        )
         historico_confirmacao = [
             {"role": "user", "content": texto_falado},
             {"role": "assistant", "content": json.dumps(dicionario_resposta, ensure_ascii=False)},
@@ -243,6 +386,13 @@ while True:
                 texto_falado,
                 historico=historico_confirmacao,
             )
+            if nome_escolhido and dicionario_resposta.get("acao") == "pesquisar_video":
+                alvo_atual = dicionario_resposta.get("alvo") or ""
+                nome_atual = extrair_identificador_canal(alvo_atual)
+                if nome_atual:
+                    dicionario_resposta["alvo"] = substituir_nome_no_alvo(
+                        alvo_atual, nome_atual, nome_escolhido
+                    )
             historico_confirmacao.extend([
                 {"role": "user", "content": texto_falado},
                 {"role": "assistant", "content": json.dumps(dicionario_resposta, ensure_ascii=False)},
@@ -266,23 +416,28 @@ while True:
                 webbrowser.open(f"https://{site}")
 
             elif dicionario_resposta['acao'] == "pesquisar_video":
-                assunto = dicionario_resposta['alvo']
-                site = dicionario_resposta['site'] or "www.youtube.com"
+                assunto = limpar_soletracao(dicionario_resposta['alvo'] or "lives")
+                identificador, plataforma = identificar_plataforma(
+                    dicionario_resposta.get('site')
+                )
                 assunto_normalizado = normalizar_texto(assunto)
 
-                if "ultimo video" in assunto_normalizado or "video mais recente" in assunto_normalizado:
+                if identificador == "youtube" and (
+                    "ultimo video" in assunto_normalizado
+                    or "video mais recente" in assunto_normalizado
+                ):
                     canal = extrair_canal_para_ultimo_video(assunto)
                     titulo_video, url = buscar_ultimo_video(canal)
                     fala = f"Abrindo o vídeo mais recente de {canal}: {titulo_video}."
                 else:
                     consulta = quote_plus(assunto)
-                    if "youtube" in site.lower():
-                        url = f"https://www.youtube.com/results?search_query={consulta}"
-                        nome_site = "YouTube"
+                    canal = extrair_identificador_canal(assunto)
+                    if canal and identificador in {"twitch", "kick", "instagram", "tiktok", "facebook"}:
+                        url = plataforma["canal"].format(canal=quote_plus(canal))
+                        fala = f"Abrindo o canal ou perfil {canal} na {plataforma['nome']}."
                     else:
-                        url = f"https://www.google.com/search?q={consulta}+video"
-                        nome_site = "Google"
-                    fala = f"Pesquisando vídeos sobre {assunto} no {nome_site}."
+                        url = plataforma["busca"].format(consulta=consulta)
+                        fala = f"Pesquisando lives sobre {assunto} na {plataforma['nome']}."
 
                 print(fala)
                 falar(fala)
