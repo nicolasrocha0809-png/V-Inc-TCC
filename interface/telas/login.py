@@ -10,6 +10,11 @@ from interface.prefs_manager import PrefsManager
 from config import settings  
 
 EMAIL_REMETENTE, SENHA_REMETENTE = os.getenv("EMAIL_REMETENTE"), os.getenv("SENHA_REMETENTE")
+
+def normalizar_email(email):
+    """Padroniza o e-mail para ignorar maiúsculas e espaços extras."""
+    return (email or "").strip().lower()
+
 class BotaoAcessivel(QPushButton):
     def paintEvent(self, event):
         option = QStyleOptionButton()
@@ -405,7 +410,9 @@ class LoginScreen(QWidget):
             self.criar_tela_validar()
             return
     def acao_login(self):
-        email, senha = self.txt_email.text().strip(), self.txt_senha.text().strip()
+        email = normalizar_email(self.txt_email.text())
+        senha = self.txt_senha.text().strip()
+
         try:
             res = self.supabase.table("usuarios").select("id, senha_hash").eq("email", email).execute()
            
@@ -556,7 +563,7 @@ class LoginScreen(QWidget):
             [btn_salvar, btn_voltar, self.btn_ir_login],
         )
     def acao_cadastrar(self):
-        email = self.txt_n_email.text().strip()
+        email = normalizar_email(self.txt_n_email.text())
         senha = self.txt_n_senha.text().strip()
         confirmacao = self.txt_confirmar_senha.text().strip()
         if not email or not senha:
@@ -616,7 +623,7 @@ class LoginScreen(QWidget):
         self.atualizar_dimensoes_responsivas()
         self.configurar_navegacao([self.txt_email_rec], [btn_env, btn_voltar])
     def enviar_codigo_email(self):
-        self.email_recuperando = self.txt_email_rec.text().strip()
+        self.email_recuperando = normalizar_email(self.txt_email_rec.text())
         if not self.email_recuperando:
             self.anunciar_status(self.lbl_status_recuperacao, "Informe seu e-mail.")
             self.txt_email_rec.setFocus()
