@@ -4,6 +4,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from config import settings
+from interface.audio_devices import listar_dispositivos, nomes_com_padrao
 
 # Imports extras necessários para o layout (não substituem os de cima)
 from PySide6.QtWidgets import QHBoxLayout, QSizePolicy, QGraphicsDropShadowEffect
@@ -176,7 +177,8 @@ class InicioScreen(QWidget):
         # Entrada de Áudio
         layout_card.addWidget(self._criar_titulo_campo("Entrada de Áudio"))
         self.mic_combo = QComboBox()
-        self.mic_combo.addItems(["Microfone Padrão", "Microfone Externo"])
+        microfones, _ = listar_dispositivos()
+        self.mic_combo.addItems(nomes_com_padrao(microfones))
         self.mic_combo.setAccessibleName("Entrada de áudio")
         self.mic_combo.setAccessibleDescription("Selecione o microfone que será usado pelo assistente.")
         self.mic_combo.setMinimumHeight(44)
@@ -189,7 +191,8 @@ class InicioScreen(QWidget):
         # Saída de Áudio
         layout_card.addWidget(self._criar_titulo_campo("Saída de Áudio"))
         self.speaker_combo = QComboBox()
-        self.speaker_combo.addItems(["Headset Padrão", "Alto-falantes"])
+        _, saidas = listar_dispositivos()
+        self.speaker_combo.addItems(nomes_com_padrao(saidas))
         self.speaker_combo.setAccessibleName("Saída de áudio")
         self.speaker_combo.setAccessibleDescription("Selecione o dispositivo de saída das respostas do assistente.")
         self.speaker_combo.setMinimumHeight(44)
@@ -281,9 +284,6 @@ class InicioScreen(QWidget):
         self.assistente_ativo = True
         self.lbl_ouvindo.setText("Assistente ativado — ouvindo")
         self._atualizar_estado_controles()
-        self.btn_mic.setAccessibleName("Parar assistente de voz")
-        self.btn_mic.setToolTip("Parar o assistente de voz")
-        self.btn_parar.setEnabled(True)
 
     def parar_assistente(self):
         if not self.processo_assistente:
@@ -320,27 +320,28 @@ class InicioScreen(QWidget):
             self.lbl_ouvindo.setText("Não foi possível iniciar o assistente")
             self.assistente_ativo = False
 
-    def _assistente_finalizado(self, *_args):
-        self.assistente_ativo = False
-        self.lbl_ouvindo.setText("Assistente parado")
-        self._atualizar_estado_controles()
-        if hasattr(self, "btn_mic"):
-            self.btn_mic.setAccessibleName("Ativar assistente de voz")
-            self.btn_mic.setToolTip("Ativar o assistente de voz")
-
     def _atualizar_estado_controles(self):
+        if not hasattr(self, "btn_parar"):
+            return
         if self.assistente_ativo:
             self.btn_parar.setText("Parar de Ouvir")
             self.btn_parar.setAccessibleName("Parar de ouvir")
             self.btn_parar.setAccessibleDescription("Interrompe o assistente de voz ativo.")
+            self.btn_parar.setEnabled(True)
             self.btn_mic.setAccessibleName("Parar assistente de voz")
             self.btn_mic.setToolTip("Parar o assistente de voz")
         else:
             self.btn_parar.setText("Iniciar Assistente")
             self.btn_parar.setAccessibleName("Iniciar assistente de voz")
             self.btn_parar.setAccessibleDescription("Inicia o assistente de voz.")
+            self.btn_parar.setEnabled(True)
             self.btn_mic.setAccessibleName("Ativar assistente de voz")
             self.btn_mic.setToolTip("Ativar o assistente de voz")
+
+    def _assistente_finalizado(self, *_args):
+        self.assistente_ativo = False
+        self.lbl_ouvindo.setText("Assistente parado")
+        self._atualizar_estado_controles()        
 
     def abrir_configuracoes(self):
         janela = self.window()

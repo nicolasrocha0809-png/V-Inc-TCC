@@ -10,3 +10,4 @@ PySide6
 supabase
 bcrypt
 pydub
+pycaw

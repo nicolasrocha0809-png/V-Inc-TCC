@@ -6,21 +6,8 @@ from config import settings
 import speech_recognition as sr
 
 
-def listar_microfones():
-    try:
-        return sr.Microphone.list_microphone_names()
-    except Exception:
-        return []
-
-
-def listar_saidas_audio():
-    try:
-        from pygame._sdl2 import audio as sdl_audio
-        saidas = sdl_audio.get_audio_device_names(False)
-        return [nome.decode() if isinstance(nome, bytes) else nome for nome in saidas]
-    except Exception:
-        return []
 from interface.prefs_manager import PrefsManager
+from interface.audio_devices import listar_dispositivos, nomes_com_padrao
 
 class ConfiguracoesScreen(QWidget):
     def __init__(self, parent=None, supabase_client=None, user_id=None):
@@ -85,8 +72,8 @@ class ConfiguracoesScreen(QWidget):
         self.combo_microfone = QComboBox()
         self.combo_microfone.setAccessibleName("Microfone de entrada")
         self.combo_microfone.setAccessibleDescription("Escolha o microfone usado para ouvir seus comandos.")
-        microfones = listar_microfones()
-        self.combo_microfone.addItems(microfones or ["Padrão do sistema"])
+        microfones, _ = listar_dispositivos()
+        self.combo_microfone.addItems(nomes_com_padrao(microfones))
         microfone_atual = settings.get("audio", "microfone")
         if microfone_atual:
             indice = self.combo_microfone.findText(microfone_atual)
@@ -100,8 +87,8 @@ class ConfiguracoesScreen(QWidget):
         self.combo_saida = QComboBox()
         self.combo_saida.setAccessibleName("Saída de áudio")
         self.combo_saida.setAccessibleDescription("Escolha o dispositivo que reproduzirá a voz do assistente.")
-        saidas = listar_saidas_audio()
-        self.combo_saida.addItems(saidas or ["Padrão do sistema"])
+        _, saidas = listar_dispositivos()
+        self.combo_saida.addItems(nomes_com_padrao(saidas))
         saida_atual = settings.get("audio", "saida")
         if saida_atual:
             indice = self.combo_saida.findText(saida_atual)

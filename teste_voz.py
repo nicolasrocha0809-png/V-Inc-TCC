@@ -7,6 +7,7 @@ import pygame as pg
 import pyttsx3
 import speech_recognition as sr
 from config import settings 
+from interface.audio_devices import definir_saida_padrao
 
 # Carrega os segredos do arquivo .env
 load_dotenv()
@@ -23,13 +24,48 @@ rec = sr.Recognizer()
 MAPA_IDIOMAS = {
     "pt_BR": {"whisper": "pt", "voz": "pt-BR-FranciscaNeural"},
     "en_US": {"whisper": "en", "voz": "en-US-AriaNeural"},
-    "es_ES": {"whisper": "es", "voz": "es-ES-ElviraNeural"}
+    "es_ES": {"whisper": "es", "voz": "es-ES-ElviraNeural"},
 }
 
 def obter_configuracao_idioma():
-    """Busca o idioma atual nas configurações ou usa pt_BR como padrão."""
+    """Busca o idioma atual nas ou usa pt_BR como padrão."""
     sigla = settings.get("geral", "idioma") or "pt_BR"
     return MAPA_IDIOMAS.get(sigla, MAPA_IDIOMAS["pt_BR"])
+
+def obter_microfone_configurado():
+    """Abre o microfone salvo nas preferências ou usa o padrão do sistema."""
+    nome_salvo = settings.get("audio", "microfone")
+
+    if not nome_salvo or nome_salvo == "Padrão do sistema":
+        return sr.Microphone()
+
+    try:
+        nomes = sr.Microphone.list_microphone_names()
+        indice = next(
+            (i for i, nome in enumerate(nomes) if nome == nome_salvo),
+            None,
+        )
+        if indice is not None:
+            return sr.Microphone(device_index=indice)
+    except Exception as erro:
+        print(f"Não foi possível selecionar o microfone: {erro}")
+
+    return sr.Microphone()
+
+def iniciar_mixer_configurado():
+    """Inicializa o mixer na saída salva ou usa a saída padrão."""
+    nome_salvo = settings.get("audio", "saida")
+
+    if not nome_salvo or nome_salvo == "Padrão do sistema":
+        pg.mixer.init()
+        return
+
+    try:
+        definir_saida_padrao(nome_salvo)
+        pg.mixer.init()
+    except Exception as erro:
+        print(f"Não foi possível selecionar a saída: {erro}")
+        pg.mixer.init()
 
 def falar(texto):
     try:
@@ -39,12 +75,16 @@ def falar(texto):
 
         # 1. Lê a velocidade configurada no slider (0 a 100)
         valor_velocidade = int(settings.get("audio", "velocidade") or 80)
-        taxa_calculada = int((valor_velocidade - 50) * 1.5) 
-        rate_str = f"+{taxa_calculada}%" if taxa_calculada >= 0 else f"{taxa_calculada}%"
+        taxa_calculada = int((valor_velocidade - 50) * 1.5)
+        rate_str = (
+            f"+{taxa_calculada}%"
+            if taxa_calculada >= 0
+            else f"{taxa_calculada}%"
+        )
 
         # 2. Lê o volume configurado no slider (0 a 100) e converte para a escala do Pygame (0.0 a 1.0)
         valor_volume_slider = int(settings.get("audio", "volume") or 80)
-        volume_decimal = valor_volume_slider / 100.0
+        volume_decimal = max(0.0, min(1.0, valor_volume_slider / 100.0))
 
         async def gerar_audio():
             comunicacao = e_tts.Communicate(texto, voz_atual, rate=rate_str)
@@ -53,7 +93,7 @@ def falar(texto):
         asyncio.run(gerar_audio())
         
         # 3. Reproduz o áudio aplicando o volume de forma independente
-        pg.mixer.init()
+        iniciar_mixer_configurado()
         pg.mixer.music.load("resposta.mp3")
         pg.mixer.music.set_volume(volume_decimal)
         pg.mixer.music.play()
@@ -66,8 +106,8 @@ def falar(texto):
         if os.path.exists("resposta.mp3"):
             os.remove("resposta.mp3")
 
-    except Exception as e:
-        print(f"Erro no edge-tts: {e}")
+    except Exception as erro:
+        print(f"Erro no edge-tts: {erro}")
         motor = pyttsx3.init()
         motor.say(texto)
         motor.runAndWait()
@@ -78,29 +118,29 @@ def ouvir():
         cfg_idioma = obter_configuracao_idioma()
         lang_whisper = cfg_idioma["whisper"]
 
-        with sr.Microphone() as mic:
+        with obter_microfone_configurado() as mic:
             print(f"\nAssistente ativo e ouvindo ({lang_whisper})...")
             rec.pause_threshold = 1.5
             rec.adjust_for_ambient_noise(mic)
             audio = rec.listen(mic)
 
-            with open('meu_audio.wav', 'wb') as arquivo_wav:
+            with open("meu_audio.wav", "wb") as arquivo_wav:
                 arquivo_wav.write(audio.get_wav_data())
                 
             print("Processando audio...")
 
-            with open('meu_audio.wav', 'rb') as arquivo_lido:
+            with open("meu_audio.wav", "rb") as arquivo_lido:
                 transcricao = cliente.audio.transcriptions.create(
                     file=("meu_audio.wav", arquivo_lido.read()), 
                     model="whisper-large-v3",
-                    language=lang_whisper  # Idioma dinâmico aplicado aqui!
+                    language=lang_whisper,  # Idioma dinâmico aplicado aqui!
                 )
             
             texto = transcricao.text
-            print(f'Você disse: {texto}')
+            print(f"Você disse: {texto}")
             return texto
     except Exception as e:
-        print(f"Não foi possível escutar: {e}")
+        print(f"Não foi possível escutar: {erro}")
         return ""
 
 def iniciar_assistente():
@@ -110,8 +150,13 @@ def iniciar_assistente():
         texto_ouvido = ouvir()
         
         if texto_ouvido:
-            if "desligar sistema" in texto_ouvido.lower() or "encerrar" in texto_ouvido.lower() or "exit" in texto_ouvido.lower() or "salir" in texto_ouvido.lower():
-                falar("Desligando o assistente. Até logo!")
+            texto_normalizado = texto_ouvido.lower()
+            if (
+                "desligar sistema" in texto_normalizado
+                or "encerrar" in texto_normalizado
+                or "exit" in texto_normalizado
+                or "salir" in texto_normalizado
+            ):
                 break
                 
             falar(f"Você disse: {texto_ouvido}")
