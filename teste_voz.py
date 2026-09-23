@@ -139,7 +139,7 @@ def ouvir():
             texto = transcricao.text
             print(f"Você disse: {texto}")
             return texto
-    except Exception as e:
+    except Exception as erro:
         print(f"Não foi possível escutar: {erro}")
         return ""
 
