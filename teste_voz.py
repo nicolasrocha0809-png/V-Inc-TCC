@@ -114,31 +114,47 @@ def falar(texto):
 
 def ouvir():
     try:
-        # Pega o código de idioma correto para o Whisper (ex: 'pt', 'en', 'es')
         cfg_idioma = obter_configuracao_idioma()
         lang_whisper = cfg_idioma["whisper"]
 
         with obter_microfone_configurado() as mic:
-            print(f"\nAssistente ativo e ouvindo ({lang_whisper})...")
+            print("\nCalibrando o microfone. Aguarde em silêncio...")
+
             rec.pause_threshold = 1.5
-            rec.adjust_for_ambient_noise(mic)
-            audio = rec.listen(mic)
+            rec.adjust_for_ambient_noise(mic, duration=1)
 
-            with open("meu_audio.wav", "wb") as arquivo_wav:
-                arquivo_wav.write(audio.get_wav_data())
-                
-            print("Processando audio...")
+            print(f"Limite de energia: {rec.energy_threshold:.0f}")
+            print(
+                f"Assistente ativo e ouvindo ({lang_whisper}). "
+                "Pode falar agora..."
+            )
 
-            with open("meu_audio.wav", "rb") as arquivo_lido:
-                transcricao = cliente.audio.transcriptions.create(
-                    file=("meu_audio.wav", arquivo_lido.read()), 
-                    model="whisper-large-v3",
-                    language=lang_whisper,  # Idioma dinâmico aplicado aqui!
-                )
-            
-            texto = transcricao.text
-            print(f"Você disse: {texto}")
-            return texto
+            audio = rec.listen(
+                mic,
+                timeout=10,
+                phrase_time_limit=10,
+            )
+
+        with open("meu_audio.wav", "wb") as arquivo_wav:
+            arquivo_wav.write(audio.get_wav_data())
+
+        print("Processando áudio...")
+
+        with open("meu_audio.wav", "rb") as arquivo_lido:
+            transcricao = cliente.audio.transcriptions.create(
+                file=("meu_audio.wav", arquivo_lido.read()),
+                model="whisper-large-v3",
+                language=lang_whisper,
+            )
+
+        texto = transcricao.text.strip()
+        print(f"Você disse: {texto}")
+        return texto
+
+    except sr.WaitTimeoutError:
+        print("Nenhuma fala foi detectada dentro do tempo limite.")
+        return ""
+
     except Exception as erro:
         print(f"Não foi possível escutar: {erro}")
         return ""

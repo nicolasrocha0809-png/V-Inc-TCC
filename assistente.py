@@ -14,6 +14,7 @@ from supabase import create_client
 from config import settings  
 from teste_cerebro import pensar
 from teste_voz import ouvir, falar
+from aplicativos import abrir_aplicativo
 import webbrowser
 
 load_dotenv()
@@ -350,6 +351,9 @@ while True:
     try:    
         texto_falado = ouvir()
 
+        if not texto_falado:
+            continue
+
         if eh_comando_encerramento(texto_falado):
             print("Encerrando o Sistema...")
             falar("Encerrando o Sistema...")
@@ -377,6 +381,10 @@ while True:
             falar(resposta)
 
             texto_falado = ouvir()
+
+            if not texto_falado:
+                continue
+
             if eh_comando_encerramento(texto_falado):
                 print("Encerrando o Sistema...")
                 falar("Encerrando o Sistema...")
@@ -404,6 +412,93 @@ while True:
 
                 print(texto_resposta)
                 falar(texto_resposta)
+
+            elif dicionario_resposta['acao'] == "abrir_app":
+                alvo = dicionario_resposta['alvo']
+                resultado = abrir_aplicativo(alvo)
+                status = resultado["status"]
+
+                if status == "aberto":
+                    fala = f"Abrindo {resultado['nome']}."
+
+                elif status == "nao_encontrado":
+                    fala = (
+                        f"Não encontrei o aplicativo {alvo} "
+                        "no Menu Iniciar ou na Área de Trabalho."
+                    )
+
+                elif status == "ambiguo":
+                    opcoes = resultado["opcoes"]
+
+                    opcoes_numeradas = ", ".join(
+                        f"{indice + 1}: {nome}"
+                        for indice, nome in enumerate(opcoes)
+                    )
+
+                    pergunta = (
+                        f"Encontrei mais de uma opção para {alvo}: "
+                        f"{opcoes_numeradas}. Qual você deseja abrir?"
+                    )
+
+                    print(pergunta)
+                    falar(pergunta)
+
+                    escolha = ouvir()
+
+                    if not escolha:
+                        fala = "Não consegui ouvir sua escolha."
+
+                    else:
+                        palavras = set(normalizar_texto(escolha).split())
+
+                        ordinais = {
+                            "1": 0,
+                            "primeiro": 0,
+                            "primeira": 0,
+                            "2": 1,
+                            "segundo": 1,
+                            "segunda": 1,
+                            "3": 2,
+                            "terceiro": 2,
+                            "terceira": 2,
+                            "4": 3,
+                            "quarto": 3,
+                            "quarta": 3,
+                            "5": 4,
+                            "quinto": 4,
+                            "quinta": 4,
+                        }
+
+                        indice_escolhido = next(
+                            (
+                                indice
+                                for palavra, indice in ordinais.items()
+                                if palavra in palavras and indice < len(opcoes)
+                            ),
+                            None,
+                        )
+
+                        if indice_escolhido is not None:
+                            nome_escolhido = opcoes[indice_escolhido]
+                        else:
+                            nome_escolhido = escolha
+
+                        resultado_escolha = abrir_aplicativo(nome_escolhido)
+
+                        if resultado_escolha["status"] == "aberto":
+                            fala = f"Abrindo {resultado_escolha['nome']}."
+
+                        elif resultado_escolha["status"] == "ambiguo":
+                            fala = "Sua escolha ainda corresponde a mais de um aplicativo."
+
+                        else:
+                            fala = f"Não encontrei o aplicativo {nome_escolhido}."
+
+                else:
+                    fala = f"Não consegui abrir o aplicativo {alvo}."
+
+                print(fala)
+                falar(fala)
 
             elif dicionario_resposta['acao'] == "abrir_site":
                 site = dicionario_resposta['site']
