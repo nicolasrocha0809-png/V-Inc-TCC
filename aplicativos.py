@@ -1,4 +1,5 @@
 import os
+import subprocess
 from pathlib import Path
 import unicodedata
 from difflib import get_close_matches
@@ -23,14 +24,97 @@ def obter_pastas_de_aplicativos():
 
 
 ALIASES = {
-    "vs code": "visual studio code",
-    "vscode": "visual studio code",
-    "chrome": "google chrome",
-    "opera": "navegador opera gx",
+    # Windows
+    "calc": "calculadora",
+    "calculator": "calculadora",
+
+    "bloco": "bloco de notas",
+    "bloco de nota": "bloco de notas",
+    "notepad": "bloco de notas",
+
+    "explorer": "file explorer",
     "explorador": "file explorer",
     "explorador de arquivos": "file explorer",
+    "gerenciador de arquivos": "file explorer",
+    "meus arquivos": "file explorer",
+
+    "config": "configuracoes",
+    "configuracao": "configuracoes",
+    "configuracoes": "configuracoes",
+    "settings": "configuracoes",
+    "ajustes": "configuracoes",
+
+    "painel de controle": "control panel",
+    "gerenciador de tarefas": "task manager",
+    "prompt": "command prompt",
+    "prompt de comando": "command prompt",
+    "cmd": "command prompt",
+
+    # Navegadores
+    "chrome": "google chrome",
+    "google": "google chrome",
+    "edge": "microsoft edge",
+    "fire fox": "firefox",
+    "mozilla": "firefox",
+
+    # Desenvolvimento
+    "vs code": "visual studio code",
+    "vscode": "visual studio code",
+    "visual code": "visual studio code",
+    "code": "visual studio code",
+
+    "git hub": "github desktop",
+    "github": "github desktop",
+
+    "docker": "docker desktop",
+    "intellij": "intellij idea",
+    "idea": "intellij idea",
+
+    "mongo": "mongodb compass",
+    "mongodb": "mongodb compass",
+
+    "workbench": "mysql workbench",
+    "mysql": "mysql workbench",
+
+    "ssms": "sql server management studio",
+    "sql management studio": "sql server management studio",
+
+    "xampp": "xampp control panel",
+
+    # Escritório
+    "power point": "powerpoint",
+    "ms word": "word",
+    "ms excel": "excel",
+    "ms powerpoint": "powerpoint",
+
+    "libre office": "libreoffice",
+    "libre office writer": "libreoffice writer",
+    "libre office calc": "libreoffice calc",
+    "libre office impress": "libreoffice impress",
+
+    # Outros nomes comuns
+    "power bi": "power bi desktop",
+    "virtual box": "oracle virtualbox",
+    "packet tracer": "cisco packet tracer",
 }
 
+
+APLICATIVOS_SISTEMA = {
+    "calculadora": ["calc.exe"],
+    "bloco de notas": ["notepad.exe"],
+    "paint": ["mspaint.exe"],
+    "file explorer": ["explorer.exe"],
+    "command prompt": ["cmd.exe"],
+    "task manager": ["taskmgr.exe"],
+    "control panel": ["control.exe"],
+}
+
+APLICATIVOS_URI = {
+    "configuracoes": {
+        "uri": "ms-settings:",
+        "nome": "configurações",
+    },
+}
 
 def normalizar_nome(nome):
     nome = unicodedata.normalize("NFKD", nome)
@@ -83,6 +167,58 @@ def encontrar_atalhos():
 
 
 def abrir_aplicativo(nome_solicitado):
+    nome_normalizado = normalizar_nome(nome_solicitado)
+    nome_normalizado = ALIASES.get(nome_normalizado, nome_normalizado)
+
+    if nome_normalizado in APLICATIVOS_URI:
+        aplicativo = APLICATIVOS_URI[nome_normalizado]
+
+        try:
+            os.startfile(aplicativo["uri"])
+
+            return {
+                "status": "aberto",
+                "nome": aplicativo["nome"],
+            }
+
+        except OSError as erro:
+            print(
+                f"Não foi possível abrir "
+                f"{aplicativo['nome']}: {erro}"
+            )
+
+            return {
+                "status": "erro",
+                "nome": aplicativo["nome"],
+            }
+
+    if nome_normalizado in APLICATIVOS_SISTEMA:
+        comando = APLICATIVOS_SISTEMA[nome_normalizado]
+
+        try:
+            if nome_normalizado == "command prompt":
+                subprocess.Popen(
+                    comando,
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                )
+            elif nome_normalizado == "task manager":
+                os.startfile("taskmgr.exe")
+            else:
+                subprocess.Popen(comando)
+
+            return {
+                "status": "aberto",
+                "nome": nome_normalizado,
+            }
+
+        except OSError as erro:
+            print(f"Não foi possível abrir {nome_normalizado}: {erro}")
+
+            return {
+                "status": "erro",
+                "nome": nome_normalizado,
+            }
+
     aplicativos = encontrar_atalhos()
     resultados = buscar_aplicativos(nome_solicitado, aplicativos)
 
