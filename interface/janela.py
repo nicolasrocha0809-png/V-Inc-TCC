@@ -1,5 +1,6 @@
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QTimer, Qt
 from PySide6.QtWidgets import (
+    QApplication,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -27,8 +28,8 @@ class JanelaPrincipal(QMainWindow):
         self.current_user_id = None
         
         self.setWindowTitle("V.INC — Voz Inclusiva")
-        self.setMinimumSize(960, 640)
-        self.resize(1120, 720)
+        self.setMinimumSize(900, 560)
+        self._definir_tamanho_inicial()
         self.central_widget = QWidget()
         self.central_widget.setObjectName("janela_principal")
         self.setCentralWidget(self.central_widget)
@@ -104,6 +105,31 @@ class JanelaPrincipal(QMainWindow):
         )
         self.stack.addWidget(self.login_screen)
         self.sidebar.hide()
+
+        QTimer.singleShot(0, self._centralizar_janela)
+
+    def _definir_tamanho_inicial(self):
+        tela = QApplication.primaryScreen()
+
+        if tela is None:
+            self.resize(1000, 640)
+            return
+
+        area_disponivel = tela.availableGeometry()
+        largura = min(1120, max(900, int(area_disponivel.width() * 0.82)))
+        altura = min(680, max(560, int(area_disponivel.height() * 0.88)))
+        self.resize(largura, altura)
+
+    def _centralizar_janela(self):
+        tela = self.screen() or QApplication.primaryScreen()
+
+        if tela is None:
+            return
+
+        area_disponivel = tela.availableGeometry()
+        geometria = self.frameGeometry()
+        geometria.moveCenter(area_disponivel.center())
+        self.move(geometria.topLeft())
 
     def _criar_botao_menu(self, texto, indice):
         botao = QPushButton(texto)

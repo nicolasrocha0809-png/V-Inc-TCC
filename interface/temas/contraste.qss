@@ -1,5 +1,6 @@
 
 QWidget { background-color: #000000; color: #FFFF00; }
+QLabel { background-color: transparent; }
 
 #sidebar { background-color: #000000; border-right-color: #FFFF00; }
 #marca_sidebar, #subtitulo_sidebar, #titulo_menu { color: #FFFF00; }
@@ -10,6 +11,14 @@ QWidget { background-color: #000000; color: #FFFF00; }
 }
 #menu_btn:focus, #ajuda_btn:focus { border-color: #FFFFFF; }
 #divisor_sidebar { background-color: #FFFF00; }
+
+#pagina_comandos { background-color: #000000; }
+#rotulo_pagina, #titulo_pagina, #subtitulo_pagina,
+#titulo_card_comando, #descricao_card_comando, #exemplo_comando {
+    color: #FFFF00;
+}
+#card_comando { background-color: #000000; border-color: #FFFF00; }
+#icone_comando { background-color: #FFFF00; color: #000000; }
 
 #login_card { background-color: #000000; border-color: #FFFF00; }
 QLineEdit { background-color: #000000; color: #FFFF00; border-color: #FFFF00; }

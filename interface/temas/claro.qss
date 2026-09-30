@@ -1,5 +1,6 @@
 
 QWidget { background-color: #F7F9FA; color: #182022; }
+QLabel { background-color: transparent; }
 
 #sidebar { background-color: #FFFFFF; border-right-color: #D8E0E3; }
 #marca_sidebar { color: #20539B; }
@@ -9,6 +10,17 @@ QWidget { background-color: #F7F9FA; color: #182022; }
 #menu_btn:checked, #ajuda_btn:checked { background-color: #20539B; color: #FFFFFF; }
 #menu_btn:focus, #ajuda_btn:focus { border-color: #20539B; }
 #divisor_sidebar { background-color: #D8E0E3; }
+
+#pagina_comandos { background-color: #F7F9FA; }
+#rotulo_pagina { color: #20539B; }
+#titulo_pagina { color: #182022; }
+#subtitulo_pagina { color: #586569; }
+#card_comando { background-color: #FFFFFF; border-color: #D8E0E3; }
+#card_comando:hover { border-color: #20539B; }
+#icone_comando { background-color: #D8E9FF; color: #173F78; }
+#titulo_card_comando { color: #182022; }
+#descricao_card_comando { color: #46575C; }
+#exemplo_comando { color: #20539B; }
 
 #login_card { background-color: #FFFFFF; border-color: #D8E0E3; }
 QLineEdit { background-color: #FFFFFF; color: #182022; border-color: #AAB5B9; }

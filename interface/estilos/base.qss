@@ -48,6 +48,51 @@ QWidget {
     border: none;
 }
 
+#scroll_pagina {
+    border: none;
+}
+
+#rotulo_pagina {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+#titulo_pagina {
+    font-size: 30px;
+    font-weight: 700;
+}
+
+#subtitulo_pagina {
+    font-size: 15px;
+}
+
+#card_comando {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 16px;
+}
+
+#icone_comando {
+    border-radius: 9px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+#titulo_card_comando {
+    font-size: 17px;
+    font-weight: 700;
+}
+
+#descricao_card_comando,
+#exemplo_comando {
+    font-size: 13px;
+}
+
+#exemplo_comando {
+    font-style: italic;
+}
+
 #login_card {
     border-radius: 20px;
     border: 1px solid #334155;
@@ -56,53 +101,53 @@ QWidget {
 
 /* --- Tipografia e Títulos (Forçando transparência) --- */
 QLabel {
-    background-color: transparent !important;
+    background-color: transparent;
     border: none;
 }
 
 #logo_login { 
     font-size: 50px; 
     margin-bottom: 10px; 
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 #titulo_login { 
     font-weight: bold; 
     margin-bottom: 5px; 
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 #subtitulo_login { 
     margin-bottom: 20px; 
     color: #94A3B8;
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 /* Título das telas secundárias (Cadastro, Recuperação, etc.) */
 #titulo_tela {
     font-weight: bold;
     margin-bottom: 15px;
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 #descricao_tela {
     color: #94A3B8;
     margin-bottom: 10px;
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 #label_input { 
     font-weight: 600; 
     margin-top: 10px; 
     margin-bottom: 5px; 
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 #ajuda_input {
     color: #94A3B8;
     margin-top: -4px;
     margin-bottom: 8px;
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 /* --- Campos de Entrada --- */
@@ -136,7 +181,7 @@ QPushButton {
 #status_msg {
     font-weight: bold;
     margin-top: 10px;
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 QToolButton {
