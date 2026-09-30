@@ -142,3 +142,53 @@ QLineEdit { background-color: #000000; color: #FFFF00; border-color: #FFFF00; }
 
 #subtitulo_login { color: #FFFF00; }
 #logo_login { color: #FFFF00; }
+
+/* --- Central de ajuda --- */
+#pagina_ajuda,
+#conteudo_ajuda {
+    background-color: #000000;
+}
+
+#botao_atalho_ajuda,
+#botao_copiar_suporte {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+
+#botao_atalho_ajuda:hover,
+#botao_copiar_suporte:hover {
+    background-color: #FFFF00;
+    color: #000000;
+}
+
+#card_pergunta {
+    background-color: #000000;
+    border-color: #FFFF00;
+}
+
+#botao_pergunta {
+    background-color: #000000;
+    color: #FFFF00;
+}
+
+#botao_pergunta:hover,
+#botao_pergunta:checked {
+    background-color: #FFFF00;
+    color: #000000;
+}
+
+#resposta_pergunta,
+#titulo_suporte,
+#texto_suporte {
+    color: #FFFF00;
+}
+
+#card_suporte {
+    background-color: #000000;
+    border-color: #FFFF00;
+}
+
+#scroll_ajuda QScrollBar::handle:vertical {
+    background-color: #FFFF00;
+}

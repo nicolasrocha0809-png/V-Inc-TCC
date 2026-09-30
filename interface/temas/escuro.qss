@@ -249,3 +249,65 @@ QLineEdit:focus {
 #status_msg {
     color: #F87171; 
 }
+
+/* --- Central de ajuda --- */
+#pagina_ajuda,
+#conteudo_ajuda {
+    background-color: #07162B;
+}
+
+#botao_atalho_ajuda {
+    background-color: #16385F;
+    color: #F2F7FF;
+    border-color: #476D9C;
+}
+
+#botao_atalho_ajuda:hover {
+    background-color: #20539B;
+}
+
+#card_pergunta {
+    background-color: #102A4C;
+    border-color: #21456F;
+}
+
+#botao_pergunta {
+    background-color: transparent;
+    color: #F2F7FF;
+}
+
+#botao_pergunta:hover,
+#botao_pergunta:checked {
+    background-color: #16385F;
+    color: #A9D2FF;
+}
+
+#resposta_pergunta {
+    color: #C7D8EC;
+}
+
+#card_suporte {
+    background-color: #102A4C;
+    border-color: #476D9C;
+}
+
+#titulo_suporte { color: #F2F7FF; }
+#texto_suporte { color: #AFC3DC; }
+
+#botao_copiar_suporte {
+    background-color: #A9D2FF;
+    color: #07162B;
+    border-color: #A9D2FF;
+}
+
+#botao_copiar_suporte:hover {
+    background-color: #8FC5FF;
+}
+
+#scroll_ajuda QScrollBar::handle:vertical {
+    background-color: #476D9C;
+}
+
+#scroll_ajuda QScrollBar::handle:vertical:hover {
+    background-color: #8FC5FF;
+}

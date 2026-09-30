@@ -438,6 +438,82 @@ QPushButton {
     background-color: transparent;
 }
 
+/* --- Central de ajuda --- */
+#scroll_ajuda {
+    border: none;
+}
+
+#card_pergunta {
+    border: 1px solid;
+    border-radius: 12px;
+}
+
+#botao_pergunta {
+    min-height: 22px;
+    padding: 15px 18px;
+    border: none;
+    border-radius: 11px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#resposta_pergunta {
+    padding: 12px 18px 16px 18px;
+    background-color: transparent;
+    font-size: 13px;
+}
+
+#botao_atalho_ajuda,
+#botao_copiar_suporte {
+    min-height: 20px;
+    padding: 10px 16px;
+    border: 1px solid;
+    border-radius: 10px;
+}
+
+#card_suporte {
+    border: 1px solid;
+    border-radius: 14px;
+}
+
+#card_suporte QLabel {
+    background-color: transparent;
+}
+
+#titulo_suporte {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+#texto_suporte {
+    font-size: 13px;
+}
+
+#scroll_ajuda QScrollBar:vertical {
+    width: 10px;
+    margin: 6px 2px;
+    border: none;
+    background-color: transparent;
+}
+
+#scroll_ajuda QScrollBar::handle:vertical {
+    min-height: 36px;
+    border-radius: 4px;
+}
+
+#scroll_ajuda QScrollBar::add-line:vertical,
+#scroll_ajuda QScrollBar::sub-line:vertical {
+    height: 0;
+    border: none;
+    background-color: transparent;
+}
+
+#scroll_ajuda QScrollBar::add-page:vertical,
+#scroll_ajuda QScrollBar::sub-page:vertical {
+    background-color: transparent;
+}
+
 QToolButton {
     background-color: transparent;
     border: 1px solid #334155;
