@@ -682,3 +682,49 @@ QToolButton:focus {
 #login_scroll_area QScrollBar::sub-page:vertical {
     background-color: transparent;
 }
+
+/* --- Carregamento --- */
+#card_loading {
+    border: 1px solid;
+    border-radius: 20px;
+}
+
+#card_loading QLabel,
+#info_loading {
+    background-color: transparent;
+}
+
+#titulo_loading {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 3px;
+}
+
+#subtitulo_loading {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+#status_loading {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+#barra_loading {
+    min-height: 12px;
+    max-height: 12px;
+    border: 2px solid;
+    border-radius: 7px;
+    text-align: center;
+}
+
+#barra_loading::chunk {
+    border-radius: 5px;
+}
+
+#modulos_loading,
+#percentual_loading {
+    font-size: 12px;
+    font-weight: 600;
+}

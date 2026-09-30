@@ -262,3 +262,22 @@ QLineEdit { background-color: #000000; color: #FFFF00; border-color: #FFFF00; }
 }
 
 #login_scroll_area QScrollBar::handle:vertical { background-color: #FFFF00; }
+
+/* --- Carregamento --- */
+#pagina_loading,
+#card_loading {
+    background-color: #000000;
+}
+#card_loading { border-color: #FFFF00; }
+#titulo_loading,
+#subtitulo_loading,
+#status_loading,
+#modulos_loading,
+#percentual_loading {
+    color: #FFFF00;
+}
+#barra_loading {
+    background-color: #000000;
+    border-color: #FFFF00;
+}
+#barra_loading::chunk { background-color: #FFFF00; }

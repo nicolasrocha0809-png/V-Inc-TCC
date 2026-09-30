@@ -380,3 +380,18 @@ QLineEdit:focus {
 
 #login_scroll_area QScrollBar::handle:vertical { background-color: #476D9C; }
 #login_scroll_area QScrollBar::handle:vertical:hover { background-color: #8FC5FF; }
+
+/* --- Carregamento --- */
+#pagina_loading { background-color: #07162B; }
+#card_loading {
+    background-color: #102A4C;
+    border-color: #21456F;
+}
+#titulo_loading, #status_loading { color: #F2F7FF; }
+#subtitulo_loading, #percentual_loading { color: #A9D2FF; }
+#modulos_loading { color: #AFC3DC; }
+#barra_loading {
+    background-color: #0B1F3A;
+    border-color: #476D9C;
+}
+#barra_loading::chunk { background-color: #A9D2FF; }

@@ -295,3 +295,18 @@ QLineEdit { background-color: #FFFFFF; color: #182022; border-color: #AAB5B9; }
 
 #login_scroll_area QScrollBar::handle:vertical { background-color: #AAB5B9; }
 #login_scroll_area QScrollBar::handle:vertical:hover { background-color: #20539B; }
+
+/* --- Carregamento --- */
+#pagina_loading { background-color: #EEF4FA; }
+#card_loading {
+    background-color: #FFFFFF;
+    border-color: #C9D7E3;
+}
+#titulo_loading, #status_loading { color: #182022; }
+#subtitulo_loading, #percentual_loading { color: #20539B; }
+#modulos_loading { color: #586569; }
+#barra_loading {
+    background-color: #E4EBEF;
+    border-color: #AAB5B9;
+}
+#barra_loading::chunk { background-color: #20539B; }
