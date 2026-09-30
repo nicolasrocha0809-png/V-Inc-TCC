@@ -503,6 +503,11 @@ while True:
 
             elif dicionario_resposta['acao'] == "ler_imagem":
                 alvo = dicionario_resposta["alvo"]
+
+                aviso_busca = f"Procurando a imagem {alvo}. Aguarde um momento."
+                print(aviso_busca)
+                falar(aviso_busca)
+
                 resultado = localizar_imagem(alvo)
                 status = resultado["status"]
 
@@ -591,13 +596,14 @@ while True:
                         else:
                             caminho_escolhido = opcoes[indice_escolhido]
 
-                            aviso = (
-                                f"Analisando {caminho_escolhido.name}, "
-                                f"da pasta {caminho_escolhido.parent.name}."
+                            aviso_analise = (
+                                f"Encontrei {caminho_escolhido.name}, "
+                                f"na pasta {caminho_escolhido.parent.name}. "
+                                "Vou analisar a imagem agora. Isso pode levar alguns segundos."
                             )
 
-                            print(aviso)
-                            falar(aviso)
+                            print(aviso_analise)
+                            falar(aviso_analise)
 
                             try:
                                 fala = descrever_imagem(caminho_escolhido)
@@ -612,9 +618,13 @@ while True:
                 elif status == "encontrada":
                     caminho = resultado["caminho"]
 
-                    aviso = f"Encontrei {resultado['nome']}. Analisando a imagem."
-                    print(aviso)
-                    falar(aviso)
+                    aviso_analise = (
+                        f"Encontrei {resultado['nome']}. "
+                        "Vou analisar a imagem agora. Isso pode levar alguns segundos."
+                    )
+
+                    print(aviso_analise)
+                    falar(aviso_analise)
 
                     try:
                         fala = descrever_imagem(caminho)

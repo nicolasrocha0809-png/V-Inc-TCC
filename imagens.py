@@ -31,6 +31,15 @@ EXTENSOES_IMAGEM = {
     ".heif",
 }
 
+PASTAS_TECNICAS = {
+    ".git",
+    ".venv",
+    "venv",
+    "node_modules",
+    "__pycache__",
+}
+
+_cache_imagens = None
 
 def normalizar_nome(nome):
     nome = unicodedata.normalize("NFKD", nome)
@@ -109,26 +118,47 @@ def obter_pastas_conhecidas_windows():
     return pastas
 
 
-def encontrar_imagens():
+def encontrar_imagens(forcar_atualizacao=False):
+    global _cache_imagens
+
+    if _cache_imagens is not None and not forcar_atualizacao:
+        return _cache_imagens.copy()
+
     imagens = []
+    caminhos_adicionados = set()
 
     for pasta in obter_pastas_de_imagens():
-        try:
-            for caminho in pasta.rglob("*"):
-                if (
-                    caminho.is_file()
-                    and caminho.suffix.lower() in EXTENSOES_IMAGEM
-                ):
-                    imagens.append(caminho)
+        for raiz, diretorios, arquivos in os.walk(
+            pasta,
+            onerror=lambda erro: None,
+        ):
+            diretorios[:] = [
+                diretorio
+                for diretorio in diretorios
+                if diretorio.casefold() not in PASTAS_TECNICAS
+            ]
+            for arquivo in arquivos:
+                caminho = Path(raiz) / arquivo
 
-        except OSError as erro:
-            print(f"Não foi possível acessar {pasta}: {erro}")
+                if caminho.suffix.lower() not in EXTENSOES_IMAGEM:
+                    continue
 
-    return imagens
+                caminho_normalizado = str(caminho).casefold()
+
+                if caminho_normalizado in caminhos_adicionados:
+                    continue
+
+                imagens.append(caminho)
+                caminhos_adicionados.add(caminho_normalizado)
+
+    _cache_imagens = imagens
+
+    return imagens.copy()
 
 
-def buscar_imagens(nome_solicitado):
-    imagens = encontrar_imagens()
+def buscar_imagens(nome_solicitado, forcar_atualizacao=False):
+    cache_ja_existia = _cache_imagens is not None
+    imagens = encontrar_imagens(forcar_atualizacao)
     nome_informado = str(nome_solicitado).strip()
 
     nome_informado = re.sub(
@@ -152,7 +182,10 @@ def buscar_imagens(nome_solicitado):
     resultados_exatos = [
         caminho
         for caminho in imagens
-        if normalizar_nome(caminho.stem) == nome_normalizado
+        if (
+            normalizar_nome(caminho.stem) == nome_normalizado
+            and caminho.exists()
+        )
     ]
 
     if resultados_exatos:
@@ -165,6 +198,7 @@ def buscar_imagens(nome_solicitado):
         if (
             f" {nome_normalizado} "
             in f" {normalizar_nome(caminho.stem)} "
+            and caminho.exists()
         )
     ]
 
@@ -184,11 +218,27 @@ def buscar_imagens(nome_solicitado):
         cutoff=0.6,
     )
 
-    return [
+    resultados_parecidos = [
         caminho
         for caminho in imagens
-        if normalizar_nome(caminho.stem) in nomes_parecidos
+        if (
+            normalizar_nome(caminho.stem) in nomes_parecidos
+            and caminho.exists()
+        )
     ]
+
+    if resultados_parecidos:
+        return resultados_parecidos
+
+    # Se a busca utilizou um cache antigo e não encontrou nada,
+    # atualiza a lista e tenta novamente uma única vez.
+    if cache_ja_existia and not forcar_atualizacao:
+        return buscar_imagens(
+            nome_solicitado,
+            forcar_atualizacao=True,
+        )
+
+    return []
 
 
 def localizar_imagem(nome_solicitado):
