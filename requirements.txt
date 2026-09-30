@@ -11,3 +11,4 @@ supabase
 bcrypt
 pydub
 pycaw
+google-genai
