@@ -1,19 +1,53 @@
 /* Fundo Geral  */
 QWidget {
-    background-color: #0F172A;
-    color: #F1F5F9;
+    background-color: #07162B;
+    color: #F2F7FF;
 }
+
+#sidebar {
+    background-color: #0B1F3A;
+    border-right-color: #21456F;
+}
+
+#marca_sidebar { color: #A9D2FF; }
+#subtitulo_sidebar { color: #83A7CE; }
+#titulo_menu { color: #83A7CE; }
+
+#menu_btn,
+#ajuda_btn {
+    background-color: transparent;
+    color: #C7D8EC;
+}
+
+#menu_btn:hover,
+#ajuda_btn:hover {
+    background-color: #12345A;
+    color: #F2F7FF;
+}
+
+#menu_btn:checked,
+#ajuda_btn:checked {
+    background-color: #20539B;
+    color: #FFFFFF;
+}
+
+#menu_btn:focus,
+#ajuda_btn:focus {
+    border-color: #8FC5FF;
+}
+
+#divisor_sidebar { background-color: #21456F; }
 
 /* Card de Login - */
 #login_card {
-    background-color: #1E293B !important; 
-    border: 1px solid #334155;
+    background-color: #102A4C !important;
+    border: 1px solid #21456F;
 }
 #login_card * {
     background-color: transparent !important;
 }
 
-#logo_login { color: #7DD3FC; }
+#logo_login { color: #A9D2FF; }
 #titulo_login { color: #FFFFFF; }
 #subtitulo_login { color: #94A3B8; }
 
@@ -21,23 +55,23 @@ QWidget {
 
 
 QLineEdit {
-    background-color: #0F172A;
-    color: #F1F5F9;
-    border-color: #334155;
+    background-color: #0B1F3A;
+    color: #F2F7FF;
+    border-color: #476D9C;
 }
 
 QLineEdit:focus {
-    border-color: #7DD3FC;
+    border-color: #8FC5FF;
 }
 
 /* Botão de Entrar  */
 #btn_entrar {
-    background-color: #7DD3FC;
-    color: #0F172A;
+    background-color: #20539B;
+    color: #FFFFFF;
 }
 
 #btn_entrar:hover {
-    background-color: #BAE6FD;
+    background-color: #2B68B8;
 }
 
 /* Botões Secundários */

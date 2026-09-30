@@ -16,15 +16,15 @@ class InicioScreen(QWidget):
         super().__init__(parent)
 
         # ---- Paleta oficial do design system (DESIGN.md) ----
-        self.cor_fundo = "#121414"                # background / surface
-        self.cor_card = "#1e2020"                  # surface-container
-        self.cor_input_bg = "#282a2b"               # surface-container-high
-        self.cor_outline = "#899297"                 # outline
-        self.cor_primaria = "#bce8ff"                # primary (baby blue)
-        self.cor_on_primary = "#003546"              # on-primary (texto escuro sobre azul)
-        self.cor_primaria_container = "#89cff0"       # primary-container (hover)
-        self.cor_texto = "#e2e2e2"                    # on-surface
-        self.cor_texto_secundario = "#bfc8cd"          # on-surface-variant
+        self.cor_fundo = "#07162b"                   # background / surface
+        self.cor_card = "#102a4c"                    # surface-container
+        self.cor_input_bg = "#16385f"                # surface-container-high
+        self.cor_outline = "#476d9c"                 # outline
+        self.cor_primaria = "#a9d2ff"                # primary
+        self.cor_on_primary = "#07162b"              # on-primary
+        self.cor_primaria_container = "#8fc5ff"      # primary-container (hover)
+        self.cor_texto = "#f2f7ff"                   # on-surface
+        self.cor_texto_secundario = "#c7d8ec"        # on-surface-variant
         self.cor_erro = "#ffb4ab"                       # error
         self.cor_on_erro = "#690005"                     # on-error
 
@@ -82,7 +82,7 @@ class InicioScreen(QWidget):
 
         container = QFrame()
         container.setStyleSheet(
-            "background-color: #1c1c1c; border: 1px solid #4f4f4f; "
+            "background-color: #0b1f3a; border: 1px solid #476d9c; "
             "border-radius: 12px;"
         )
         container.setFixedSize(187, 43)
@@ -98,7 +98,7 @@ class InicioScreen(QWidget):
 
         divisor = QFrame()
         divisor.setFixedSize(1, 39)
-        divisor.setStyleSheet("background-color: #1c1c1c; border: none;")
+        divisor.setStyleSheet("background-color: #0b1f3a; border: none;")
 
         self.btn_escuro.clicked.connect(lambda: self._estilizar_toggle(True))
         self.btn_claro.clicked.connect(lambda: self._estilizar_toggle(False))
@@ -116,7 +116,7 @@ class InicioScreen(QWidget):
             "font-weight: bold;"
         )
         estilo_inativo = (
-            f"background-color: {self.cor_fundo}; color: #ffffff; "
+            f"background-color: {self.cor_fundo}; color: {self.cor_texto}; "
             "font-weight: normal;"
         )
         self.btn_escuro.setStyleSheet(
@@ -374,7 +374,7 @@ class InicioScreen(QWidget):
                 border: 3px solid {self.cor_primaria};
             }}
             QComboBox:hover {{
-                background-color: #333535;
+                background-color: #21456f;
             }}
             QComboBox::drop-down {{
                 border: none;

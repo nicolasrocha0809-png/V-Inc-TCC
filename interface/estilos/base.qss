@@ -1,6 +1,51 @@
 /* --- Estrutura e Container --- */
 QWidget {
     background-color: transparent;
+    font-family: "Segoe UI";
+}
+
+#sidebar {
+    border-right-width: 1px;
+    border-right-style: solid;
+}
+
+#marca_sidebar {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+
+#subtitulo_sidebar {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+#titulo_menu {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+#menu_btn,
+#ajuda_btn {
+    min-height: 24px;
+    padding: 12px 14px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#menu_btn:focus,
+#ajuda_btn:focus {
+    border-width: 2px;
+    border-style: solid;
+}
+
+#divisor_sidebar {
+    border: none;
 }
 
 #login_card {

@@ -1,15 +1,20 @@
 
-QWidget { background-color: #F1F5F9; color: #1E293B; }
+QWidget { background-color: #F7F9FA; color: #182022; }
 
-#sidebar { background-color: #E2E8F0; border-right-color: #CBD5E1; }
-#menu_btn { color: #1E293B; }
-#menu_btn:hover { background-color: #CBD5E1; }
+#sidebar { background-color: #FFFFFF; border-right-color: #D8E0E3; }
+#marca_sidebar { color: #20539B; }
+#subtitulo_sidebar, #titulo_menu { color: #586569; }
+#menu_btn, #ajuda_btn { background-color: transparent; color: #344347; }
+#menu_btn:hover, #ajuda_btn:hover { background-color: #E8F3F7; color: #182022; }
+#menu_btn:checked, #ajuda_btn:checked { background-color: #20539B; color: #FFFFFF; }
+#menu_btn:focus, #ajuda_btn:focus { border-color: #20539B; }
+#divisor_sidebar { background-color: #D8E0E3; }
 
-#login_card { background-color: #FFFFFF; border-color: #CBD5E1; }
-QLineEdit { background-color: #FFFFFF; color: #1E293B; border-color: #CBD5E1; }
+#login_card { background-color: #FFFFFF; border-color: #D8E0E3; }
+QLineEdit { background-color: #FFFFFF; color: #182022; border-color: #AAB5B9; }
 
-#btn_entrar { background-color: #3B82F6; color: #FFFFFF; }
-#btn_entrar:hover { background-color: #2563EB; }
+#btn_entrar { background-color: #20539B; color: #FFFFFF; }
+#btn_entrar:hover { background-color: #173F78; }
 
-#subtitulo_login { color: #64748B; }
-#logo_login { color: #3B82F6; }
+#subtitulo_login { color: #586569; }
+#logo_login { color: #20539B; }

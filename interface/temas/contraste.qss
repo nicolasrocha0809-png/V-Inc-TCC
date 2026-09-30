@@ -2,8 +2,14 @@
 QWidget { background-color: #000000; color: #FFFF00; }
 
 #sidebar { background-color: #000000; border-right-color: #FFFF00; }
-#menu_btn { color: #FFFF00; }
-#menu_btn:hover { background-color: #FFFF00; color: #000000; }
+#marca_sidebar, #subtitulo_sidebar, #titulo_menu { color: #FFFF00; }
+#menu_btn, #ajuda_btn { background-color: #000000; color: #FFFF00; }
+#menu_btn:hover, #menu_btn:checked, #ajuda_btn:hover, #ajuda_btn:checked {
+    background-color: #FFFF00;
+    color: #000000;
+}
+#menu_btn:focus, #ajuda_btn:focus { border-color: #FFFFFF; }
+#divisor_sidebar { background-color: #FFFF00; }
 
 #login_card { background-color: #000000; border-color: #FFFF00; }
 QLineEdit { background-color: #000000; color: #FFFF00; border-color: #FFFF00; }
