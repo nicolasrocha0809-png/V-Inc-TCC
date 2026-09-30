@@ -527,3 +527,158 @@ QToolButton:hover {
 QToolButton:focus {
     border: 2px solid #FACC15;
 }
+
+/* --- Autenticação --- */
+#login_scroll_area {
+    border: none;
+}
+
+#painel_login,
+#cadastro_card,
+#container_secundario {
+    border: 1px solid;
+    border-radius: 20px;
+}
+
+#painel_marca_login,
+#cabecalho_login,
+#painel_form_login,
+#linha_senha,
+#cadastro_card QWidget,
+#container_secundario QWidget {
+    background-color: transparent;
+}
+
+#divisor_login {
+    border: none;
+}
+
+#titulo_login {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 3px;
+}
+
+#logo_login {
+    margin: 6px 0;
+}
+
+#subtitulo_login {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+#titulo_form_login {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+#descricao_form_login {
+    margin-bottom: 4px;
+    font-size: 13px;
+}
+
+#marca_cadastro {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 3px;
+}
+
+#titulo_tela {
+    margin-bottom: 6px;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+#descricao_tela {
+    margin-bottom: 10px;
+    font-size: 13px;
+}
+
+#pagina_login #label_input {
+    margin-top: 3px;
+    margin-bottom: 1px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#pagina_login QLineEdit {
+    min-height: 18px;
+    padding: 8px 12px;
+    border: 2px solid;
+    border-radius: 11px;
+}
+
+#linha_senha QLineEdit {
+    margin: 0;
+}
+
+#pagina_login QToolButton {
+    border: 1px solid;
+    border-radius: 10px;
+}
+
+#pagina_login #btn_entrar,
+#pagina_login #btn_secundario {
+    min-height: 18px;
+    padding: 8px 14px;
+    border: 2px solid;
+    border-radius: 11px;
+}
+
+#pagina_login #btn_link {
+    padding: 5px 10px;
+    border: none;
+    background-color: transparent;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+#campo_cadastro {
+    border: 2px solid;
+    border-radius: 12px;
+}
+
+#pagina_login #campo_cadastro_input {
+    min-height: 22px;
+    padding: 8px;
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+}
+
+#ajuda_input {
+    font-size: 12px;
+}
+
+#status_msg {
+    min-height: 18px;
+    font-size: 12px;
+}
+
+#login_scroll_area QScrollBar:vertical {
+    width: 10px;
+    margin: 6px 2px;
+    border: none;
+    background-color: transparent;
+}
+
+#login_scroll_area QScrollBar::handle:vertical {
+    min-height: 36px;
+    border-radius: 4px;
+}
+
+#login_scroll_area QScrollBar::add-line:vertical,
+#login_scroll_area QScrollBar::sub-line:vertical {
+    height: 0;
+    border: none;
+    background-color: transparent;
+}
+
+#login_scroll_area QScrollBar::add-page:vertical,
+#login_scroll_area QScrollBar::sub-page:vertical {
+    background-color: transparent;
+}

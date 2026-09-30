@@ -227,3 +227,71 @@ QLineEdit { background-color: #FFFFFF; color: #182022; border-color: #AAB5B9; }
 #scroll_ajuda QScrollBar::handle:vertical:hover {
     background-color: #20539B;
 }
+
+/* --- Autenticação --- */
+#pagina_login,
+#login_scroll_area,
+#card_container {
+    background-color: #EEF4FA;
+}
+
+#painel_login,
+#cadastro_card,
+#container_secundario {
+    background-color: #FFFFFF;
+    border-color: #C9D7E3;
+}
+
+#titulo_login, #marca_cadastro { color: #173F78; }
+#subtitulo_login { color: #20539B; }
+#titulo_form_login, #titulo_tela { color: #182022; }
+#descricao_form_login, #descricao_tela, #ajuda_input { color: #586569; }
+#pagina_login #label_input { color: #263438; }
+
+#pagina_login QLineEdit {
+    background-color: #F7F9FA;
+    color: #182022;
+    border-color: #AAB5B9;
+    selection-background-color: #B9D8FF;
+}
+
+#pagina_login QLineEdit:focus { border-color: #20539B; }
+
+#pagina_login QToolButton {
+    background-color: #F7F9FA;
+    color: #173F78;
+    border-color: #AAB5B9;
+}
+
+#pagina_login QToolButton:hover { background-color: #D8E9FF; }
+
+#pagina_login #btn_entrar {
+    background-color: #20539B;
+    color: #FFFFFF;
+    border-color: #20539B;
+}
+
+#pagina_login #btn_entrar:hover {
+    background-color: #173F78;
+    border-color: #173F78;
+}
+
+#pagina_login #btn_secundario {
+    background-color: transparent;
+    color: #173F78;
+    border-color: #AAB5B9;
+}
+
+#pagina_login #btn_secundario:hover { background-color: #D8E9FF; }
+#pagina_login #btn_link { color: #20539B; }
+#pagina_login #btn_link:hover { color: #173F78; }
+
+#campo_cadastro {
+    background-color: #F7F9FA;
+    border-color: #AAB5B9;
+}
+
+#status_msg { color: #B42318; }
+
+#login_scroll_area QScrollBar::handle:vertical { background-color: #AAB5B9; }
+#login_scroll_area QScrollBar::handle:vertical:hover { background-color: #20539B; }

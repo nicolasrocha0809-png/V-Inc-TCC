@@ -192,3 +192,73 @@ QLineEdit { background-color: #000000; color: #FFFF00; border-color: #FFFF00; }
 #scroll_ajuda QScrollBar::handle:vertical {
     background-color: #FFFF00;
 }
+
+/* --- Autenticação --- */
+#pagina_login,
+#login_scroll_area,
+#card_container,
+#painel_login,
+#cadastro_card,
+#container_secundario,
+#cabecalho_login {
+    background-color: #000000;
+}
+
+#painel_login,
+#cadastro_card,
+#container_secundario {
+    border-color: #FFFF00;
+}
+
+#titulo_login,
+#marca_cadastro,
+#subtitulo_login,
+#titulo_form_login,
+#titulo_tela,
+#descricao_form_login,
+#descricao_tela,
+#ajuda_input,
+#pagina_login #label_input {
+    color: #FFFF00;
+}
+
+#pagina_login QLineEdit,
+#campo_cadastro {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+    selection-background-color: #FFFF00;
+    selection-color: #000000;
+}
+
+#pagina_login QLineEdit:focus { border-color: #FFFFFF; }
+
+#pagina_login QToolButton {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+
+#pagina_login QToolButton:hover,
+#pagina_login #btn_entrar,
+#pagina_login #btn_secundario:hover {
+    background-color: #FFFF00;
+    color: #000000;
+    border-color: #FFFF00;
+}
+
+#pagina_login #btn_entrar:hover { background-color: #FFFFFF; }
+
+#pagina_login #btn_secundario {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+
+#pagina_login #btn_link,
+#pagina_login #btn_link:hover,
+#status_msg {
+    color: #FFFF00;
+}
+
+#login_scroll_area QScrollBar::handle:vertical { background-color: #FFFF00; }
