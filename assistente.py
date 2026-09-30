@@ -15,6 +15,7 @@ from config import settings
 from teste_cerebro import pensar
 from teste_voz import ouvir, falar
 from aplicativos import abrir_aplicativo
+from imagens import localizar_imagem, descrever_imagem
 import webbrowser
 
 load_dotenv()
@@ -496,6 +497,137 @@ while True:
 
                 else:
                     fala = f"Não consegui abrir o aplicativo {alvo}."
+
+                print(fala)
+                falar(fala)
+
+            elif dicionario_resposta['acao'] == "ler_imagem":
+                alvo = dicionario_resposta["alvo"]
+                resultado = localizar_imagem(alvo)
+                status = resultado["status"]
+
+                if status == "nao_encontrada":
+                    fala = (
+                        f"Não encontrei uma imagem chamada {alvo} "
+                        "em Downloads, Documentos, Área de Trabalho ou Imagens."
+                    )
+
+                elif status == "ambiguo":
+                    todas_opcoes = resultado["opcoes"]
+                    opcoes = todas_opcoes[:5]
+
+                    opcoes_numeradas = "; ".join(
+                        (
+                            f"{indice + 1}: {caminho.name}, "
+                            f"na pasta {caminho.parent.name}"
+                        )
+                        for indice, caminho in enumerate(opcoes)
+                    )
+
+                    pergunta = (
+                        f"Encontrei {len(todas_opcoes)} imagens parecidas. "
+                        f"{opcoes_numeradas}. "
+                        "Qual delas você deseja descrever?"
+                    )
+
+                    print(pergunta)
+                    falar(pergunta)
+
+                    escolha = ouvir()
+
+                    if not escolha:
+                        fala = "Não consegui ouvir sua escolha."
+
+                    else:
+                        escolha_normalizada = normalizar_texto(escolha)
+                        palavras = set(escolha_normalizada.split())
+
+                        ordinais = {
+                            "1": 0,
+                            "primeiro": 0,
+                            "primeira": 0,
+                            "2": 1,
+                            "segundo": 1,
+                            "segunda": 1,
+                            "3": 2,
+                            "terceiro": 2,
+                            "terceira": 2,
+                            "4": 3,
+                            "quarto": 3,
+                            "quarta": 3,
+                            "5": 4,
+                            "quinto": 4,
+                            "quinta": 4,
+                        }
+
+                        indice_escolhido = next(
+                            (
+                                indice
+                                for palavra, indice in ordinais.items()
+                                if palavra in palavras
+                                and indice < len(opcoes)
+                            ),
+                            None,
+                        )
+
+                        # Caso o usuário diga o nome da pasta
+                        if indice_escolhido is None:
+                            correspondencias_pasta = [
+                                indice
+                                for indice, caminho in enumerate(opcoes)
+                                if normalizar_texto(caminho.parent.name)
+                                in escolha_normalizada
+                            ]
+
+                            if len(correspondencias_pasta) == 1:
+                                indice_escolhido = correspondencias_pasta[0]
+
+                        if indice_escolhido is None:
+                            fala = (
+                                "Não consegui identificar a imagem escolhida. "
+                                "Tente informar o número da opção."
+                            )
+
+                        else:
+                            caminho_escolhido = opcoes[indice_escolhido]
+
+                            aviso = (
+                                f"Analisando {caminho_escolhido.name}, "
+                                f"da pasta {caminho_escolhido.parent.name}."
+                            )
+
+                            print(aviso)
+                            falar(aviso)
+
+                            try:
+                                fala = descrever_imagem(caminho_escolhido)
+
+                            except Exception as erro:
+                                print(f"Erro ao descrever imagem: {erro}")
+                                fala = (
+                                    "Encontrei a imagem escolhida, mas não "
+                                    "consegui gerar a descrição neste momento."
+                                )
+
+                elif status == "encontrada":
+                    caminho = resultado["caminho"]
+
+                    aviso = f"Encontrei {resultado['nome']}. Analisando a imagem."
+                    print(aviso)
+                    falar(aviso)
+
+                    try:
+                        fala = descrever_imagem(caminho)
+
+                    except Exception as erro:
+                        print(f"Erro ao descrever imagem: {erro}")
+                        fala = (
+                            "Encontrei a imagem, mas não consegui gerar "
+                            "a descrição neste momento."
+                        )
+
+                else:
+                    fala = "Não consegui processar a imagem solicitada."
 
                 print(fala)
                 falar(fala)

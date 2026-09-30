@@ -14,7 +14,7 @@ cliente = Groq(api_key=CHAVE_API)
 AÇÕES_PERMITIDAS = {
     "abrir_site",
     "abrir_app",
-    "ler_arquivo",
+    "ler_imagem",
     "pesquisar_video",
     "responder",
     "calcular",
@@ -32,7 +32,7 @@ Use null quando um campo não se aplicar. Nunca omita as chaves.
 2. A "acao" DEVE ser OBRIGATORIAMENTE uma das opções abaixo:
    - abrir_site
    - abrir_app
-   - ler_arquivo
+   - ler_imagem
    - pesquisar_video
    - responder
    - calcular
@@ -42,7 +42,7 @@ Use null quando um campo não se aplicar. Nunca omita as chaves.
 - "calcular": use "alvo" para a expressão matemática e "site": null.
 - "abrir_site": use "alvo" para descrever o objetivo e "site" para o domínio ou URL.
 - "abrir_app": use "alvo" para o nome do aplicativo e "site": null.
-- "ler_arquivo": use "alvo" para identificar o arquivo e "site": null.
+- "ler_imagem": use "alvo" para o nome da imagem e "site": null.
 - "pesquisar_video": use "alvo" para o assunto da busca e "site" para o serviço, quando definido.
 - "texto_resposta" deve sempre existir e ser uma mensagem curta em português.
 
@@ -58,10 +58,12 @@ Use null quando um campo não se aplicar. Nunca omita as chaves.
 - Se o nome do aplicativo estiver claro, use-o no campo "alvo".
 - Se o nome estiver vago, peça confirmação.
 
-6. Regras para "ler_arquivo":
-- Use esta ação para pedidos de abrir, visualizar ou ler um arquivo ou documento.
-- Se o usuário não especificar qual arquivo, peça confirmação.
-- O campo "alvo" deve identificar o arquivo ou tipo de arquivo desejado.
+6. Regras para "ler_imagem":
+- Use esta ação para pedidos de ler, analisar ou descrever uma imagem local.
+- Coloque em "alvo" somente o nome informado pelo usuário.
+- Não invente nomes de arquivos.
+- Se o usuário não especificar a imagem, peça o nome e defina "confirmacao_necessaria": true.
+- Exemplos: "leia a imagem trabalho", "descreva a foto cachorro" e "analise a imagem gráfico".
 
 7. Regras para "pesquisar_video":
 - Use esta ação para pedidos de buscar, assistir ou procurar vídeos ou lives.
@@ -115,8 +117,8 @@ Resposta: {"acao": "calcular", "alvo": "2 + 2", "confirmacao_necessaria": false,
 Usuário: "Quero abrir o Word"
 Resposta: {"acao": "abrir_app", "alvo": "Word", "confirmacao_necessaria": false, "texto_resposta": "Abrindo o aplicativo Word.", "site": null}
 
-Usuário: "Quero ler o arquivo da minha agenda"
-Resposta: {"acao": "ler_arquivo", "alvo": "arquivo da agenda", "confirmacao_necessaria": true, "texto_resposta": "Qual arquivo você quer que eu leia?", "site": null}
+Usuário: Descreva a imagem foto da viagem
+Resposta: {"acao": "ler_imagem", "alvo": "foto da viagem", "confirmacao_necessaria": false, "texto_resposta": "Vou procurar e descrever essa imagem.", "site": null}
 
 Exemplos incorretos:
 Usuário: "Me dê uma receita de bolo de cenoura"

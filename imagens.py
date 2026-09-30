@@ -1,4 +1,6 @@
 import os
+import re
+import winreg
 import unicodedata
 from difflib import get_close_matches
 from pathlib import Path
@@ -39,30 +41,23 @@ def normalizar_nome(nome):
         if not unicodedata.combining(caractere)
     )
 
-    return nome.lower().strip()
+    nome = nome.lower()
+    nome = re.sub(r"[^a-z0-9]+", " ", nome)
+
+    return " ".join(nome.split())
 
 
 def obter_pastas_de_imagens():
     pasta_usuario = Path(os.getenv("USERPROFILE", Path.home()))
 
-    pastas = [
+    pastas = obter_pastas_conhecidas_windows()
+
+    pastas.extend([
         pasta_usuario / "Downloads",
         pasta_usuario / "Documents",
         pasta_usuario / "Desktop",
         pasta_usuario / "Pictures",
-    ]
-
-    for variavel in ("OneDrive", "OneDriveConsumer", "OneDriveCommercial"):
-        caminho_onedrive = os.getenv(variavel)
-
-        if caminho_onedrive:
-            onedrive = Path(caminho_onedrive)
-
-            pastas.extend([
-                onedrive / "Documents",
-                onedrive / "Desktop",
-                onedrive / "Pictures",
-            ])
+    ])
 
     pastas_existentes = []
     caminhos_adicionados = set()
@@ -75,6 +70,43 @@ def obter_pastas_de_imagens():
             caminhos_adicionados.add(caminho_normalizado)
 
     return pastas_existentes
+
+
+def obter_pastas_conhecidas_windows():
+    nomes_registro = (
+        "Desktop",
+        "Personal",
+        "My Pictures",
+        "{374DE290-123F-4565-9164-39C4925E467B}",
+    )
+
+    pastas = []
+
+    try:
+        chave_registro = (
+            r"Software\Microsoft\Windows\CurrentVersion"
+            r"\Explorer\User Shell Folders"
+        )
+
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            chave_registro,
+        ) as chave:
+            for nome in nomes_registro:
+                try:
+                    valor, _ = winreg.QueryValueEx(chave, nome)
+                    caminho = Path(os.path.expandvars(valor))
+
+                    if caminho.exists():
+                        pastas.append(caminho)
+
+                except OSError:
+                    continue
+
+    except OSError as erro:
+        print(f"Não foi possível consultar as pastas do Windows: {erro}")
+
+    return pastas
 
 
 def encontrar_imagens():
@@ -97,7 +129,24 @@ def encontrar_imagens():
 
 def buscar_imagens(nome_solicitado):
     imagens = encontrar_imagens()
-    nome_normalizado = normalizar_nome(nome_solicitado)
+    nome_informado = str(nome_solicitado).strip()
+
+    nome_informado = re.sub(
+        r"\s+ponto\s+(png|jpe?g|webp|heic|heif)$",
+        "",
+        nome_informado,
+        flags=re.IGNORECASE,
+    )
+
+    sufixo = Path(nome_informado).suffix.lower()
+
+    if sufixo in EXTENSOES_IMAGEM:
+        nome_informado = Path(nome_informado).stem
+
+    nome_normalizado = normalizar_nome(nome_informado)
+
+    if not nome_normalizado:
+        return []
 
     # Primeiro procura pelo nome exato, ignorando a extensão
     resultados_exatos = [
@@ -113,7 +162,10 @@ def buscar_imagens(nome_solicitado):
     resultados_parciais = [
         caminho
         for caminho in imagens
-        if nome_normalizado in normalizar_nome(caminho.stem)
+        if (
+            f" {nome_normalizado} "
+            in f" {normalizar_nome(caminho.stem)} "
+        )
     ]
 
     if resultados_parciais:
@@ -164,84 +216,72 @@ def localizar_imagem(nome_solicitado):
 
 
 def descrever_imagem(caminho_imagem):
-        caminho = Path(caminho_imagem)
+    caminho = Path(caminho_imagem)
 
-        if not caminho.exists():
-            raise FileNotFoundError("A imagem selecionada não existe.")
+    if not caminho.exists():
+        raise FileNotFoundError("A imagem selecionada não existe.")
 
-        if caminho.stat().st_size > 20 * 1024 * 1024:
-            raise ValueError("A imagem ultrapassa o limite de 20 MB.")
+    if caminho.stat().st_size > 20 * 1024 * 1024:
+        raise ValueError("A imagem ultrapassa o limite de 20 MB.")
 
-        mime_type = MIME_POR_EXTENSAO.get(caminho.suffix.lower())
+    mime_type = MIME_POR_EXTENSAO.get(caminho.suffix.lower())
 
-        if not mime_type:
-            raise ValueError("Formato de imagem não suportado.")
+    if not mime_type:
+        raise ValueError("Formato de imagem não suportado.")
 
-        chave_api = os.getenv("GEMINI_API_KEY")
+    chave_api = os.getenv("GEMINI_API_KEY")
 
-        if not chave_api:
-            raise RuntimeError("GEMINI_API_KEY não encontrada no arquivo .env.")
+    if not chave_api:
+        raise RuntimeError("GEMINI_API_KEY não encontrada no arquivo .env.")
 
-        modelo = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
-        cliente = genai.Client(api_key=chave_api)
+    modelo = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+    cliente = genai.Client(api_key=chave_api)
 
-        prompt = """
-        Você é um recurso de acessibilidade visual.
+    prompt = """
+    Você é um recurso de acessibilidade visual.
 
-        Descreva esta imagem em português do Brasil, usando texto natural
-        e adequado para ser lido em voz alta.
+    Descreva esta imagem em português do Brasil, usando texto natural
+    e adequado para ser lido em voz alta.
 
-        Comece com um resumo de uma frase. Depois, normalmente em três a seis
-        frases, descreva os objetos, pessoas, ações, posições, cores e detalhes
-        visualmente importantes.
+    Comece com um resumo de uma frase. Depois, normalmente em três a seis
+    frases, descreva os objetos, pessoas, ações, posições, cores e detalhes
+    visualmente importantes.
 
-        Leia todo texto visível que conseguir identificar.
-        Se houver gráfico, tabela ou diagrama, explique suas informações principais.
+    Leia todo texto visível que conseguir identificar.
+    Se houver gráfico, tabela ou diagrama, explique suas informações principais.
 
-        Não invente identidades, intenções ou detalhes incertos.
-        Quando algo não estiver claro, informe a incerteza.
-        Não seja excessivamente breve nem produza uma descrição longa sem necessidade.
-        Não use Markdown, tópicos ou símbolos de formatação.
-        """.strip()
+    Não invente identidades, intenções ou detalhes incertos.
+    Quando algo não estiver claro, informe a incerteza.
+    Não seja excessivamente breve nem produza uma descrição longa sem necessidade.
+    Não use Markdown, tópicos ou símbolos de formatação.
+    """.strip()
 
-        imagem_bytes = caminho.read_bytes()
+    imagem_bytes = caminho.read_bytes()
 
-        resposta = cliente.models.generate_content(
-            model=modelo,
-            contents=[
-                prompt,
-                types.Part.from_bytes(
-                    data=imagem_bytes,
-                    mime_type=mime_type,
-                ),
-            ],
-            config=types.GenerateContentConfig(
-                temperature=0.2,
-                max_output_tokens=2000,
-                thinking_config=types.ThinkingConfig(
-                    thinking_level="low",
-                ),
-                automatic_function_calling=types.AutomaticFunctionCallingConfig(
-                    disable=True,
-                ),
+    resposta = cliente.models.generate_content(
+        model=modelo,
+        contents=[
+            prompt,
+            types.Part.from_bytes(
+                data=imagem_bytes,
+                mime_type=mime_type,
             ),
-        )
+        ],
+        config=types.GenerateContentConfig(
+            temperature=0.2,
+            max_output_tokens=2000,
+            thinking_config=types.ThinkingConfig(
+                thinking_level="low",
+            ),
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(
+                disable=True,
+            ),
+        ),
+    )
 
-        descricao = resposta.text.strip() if resposta.text else ""
+    descricao = resposta.text.strip() if resposta.text else ""
 
-        if not descricao:
-            raise RuntimeError("O Gemini não retornou uma descrição.")
+    if not descricao:
+        raise RuntimeError("O Gemini não retornou uma descrição.")
 
-        return descricao
-
-
-if __name__ == "__main__":
-    resultado = localizar_imagem("Triceps-pulley-corda-1")
-
-    if resultado["status"] == "encontrada":
-        print(f"Descrevendo: {resultado['caminho']}")
-        print()
-        print(descrever_imagem(resultado["caminho"]))
-
-    else:
-        print(resultado)
+    return descricao
