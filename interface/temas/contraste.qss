@@ -20,6 +20,35 @@ QLabel { background-color: transparent; }
 #card_comando { background-color: #000000; border-color: #FFFF00; }
 #icone_comando { background-color: #FFFF00; color: #000000; }
 
+#pagina_historico { background-color: #000000; }
+#ordem_historico,
+#botao_atualizar_historico,
+#botao_limpar_historico,
+#botao_excluir_historico {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+#ordem_historico:hover,
+#botao_atualizar_historico:hover,
+#botao_limpar_historico:hover,
+#botao_excluir_historico:hover {
+    background-color: #FFFF00;
+    color: #000000;
+}
+#botao_atualizar_historico:disabled { color: #D4D400; }
+#ordem_historico::down-arrow {
+    image: url(interface/assets/chevron_down_contraste.svg);
+}
+#resumo_historico, #data_historico,
+#comando_historico, #estado_historico { color: #FFFF00; }
+#conteudo_historico, #lista_historico,
+#item_historico {
+    background-color: #000000;
+    border-color: #FFFF00;
+}
+#lista_historico QScrollBar::handle:vertical { background-color: #FFFF00; }
+
 #login_card { background-color: #000000; border-color: #FFFF00; }
 QLineEdit { background-color: #000000; color: #FFFF00; border-color: #FFFF00; }
 

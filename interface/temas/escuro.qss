@@ -56,6 +56,41 @@ QLabel {
 #descricao_card_comando { color: #C7D8EC; }
 #exemplo_comando { color: #8FC5FF; }
 
+#pagina_historico { background-color: #07162B; }
+#ordem_historico,
+#botao_atualizar_historico {
+    background-color: #16385F;
+    color: #F2F7FF;
+    border-color: #476D9C;
+}
+#ordem_historico:hover,
+#botao_atualizar_historico:hover { background-color: #20539B; }
+#ordem_historico::down-arrow {
+    image: url(interface/assets/chevron_down_dark.svg);
+}
+#botao_atualizar_historico:disabled { color: #83A7CE; }
+#botao_limpar_historico,
+#botao_excluir_historico {
+    background-color: transparent;
+    color: #FFB4AB;
+    border-color: #B65E59;
+}
+#botao_limpar_historico:hover,
+#botao_excluir_historico:hover { background-color: #5A2528; }
+#resumo_historico, #data_historico { color: #8FC5FF; }
+#conteudo_historico, #lista_historico {
+    background-color: #0B1F3A;
+    border-color: #21456F;
+}
+#item_historico {
+    background-color: #102A4C;
+    border-color: #21456F;
+}
+#comando_historico { color: #F2F7FF; }
+#estado_historico { color: #AFC3DC; }
+#lista_historico QScrollBar::handle:vertical { background-color: #476D9C; }
+#lista_historico QScrollBar::handle:vertical:hover { background-color: #8FC5FF; }
+
 /* Card de Login - */
 #login_card {
     background-color: #102A4C;

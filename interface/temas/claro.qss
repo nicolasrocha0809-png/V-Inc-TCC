@@ -22,6 +22,41 @@ QLabel { background-color: transparent; }
 #descricao_card_comando { color: #46575C; }
 #exemplo_comando { color: #20539B; }
 
+#pagina_historico { background-color: #F7F9FA; }
+#ordem_historico,
+#botao_atualizar_historico {
+    background-color: #FFFFFF;
+    color: #173F78;
+    border-color: #AAB5B9;
+}
+#ordem_historico:hover,
+#botao_atualizar_historico:hover { background-color: #D8E9FF; }
+#ordem_historico::down-arrow {
+    image: url(interface/assets/chevron_down_light.svg);
+}
+#botao_atualizar_historico:disabled { color: #7B898E; }
+#botao_limpar_historico,
+#botao_excluir_historico {
+    background-color: #FFFFFF;
+    color: #9C2F2B;
+    border-color: #C87772;
+}
+#botao_limpar_historico:hover,
+#botao_excluir_historico:hover { background-color: #FFE8E6; }
+#resumo_historico, #data_historico { color: #20539B; }
+#conteudo_historico, #lista_historico {
+    background-color: #FFFFFF;
+    border-color: #D8E0E3;
+}
+#item_historico {
+    background-color: #F7F9FA;
+    border-color: #D8E0E3;
+}
+#comando_historico { color: #182022; }
+#estado_historico { color: #586569; }
+#lista_historico QScrollBar::handle:vertical { background-color: #AAB5B9; }
+#lista_historico QScrollBar::handle:vertical:hover { background-color: #20539B; }
+
 #login_card { background-color: #FFFFFF; border-color: #D8E0E3; }
 QLineEdit { background-color: #FFFFFF; color: #182022; border-color: #AAB5B9; }
 
