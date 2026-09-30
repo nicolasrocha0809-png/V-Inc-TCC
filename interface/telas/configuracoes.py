@@ -1,152 +1,427 @@
-import os
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QComboBox, 
-                                QSlider, QPushButton, QApplication)
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QAbstractAnimation, QEasingCurve, QPropertyAnimation, Qt
+from PySide6.QtWidgets import (
+    QComboBox,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QScrollArea,
+    QSizePolicy,
+    QSlider,
+    QVBoxLayout,
+    QWidget,
+)
+
 from config import settings
-import speech_recognition as sr
-
-
-from interface.prefs_manager import PrefsManager
 from interface.audio_devices import listar_dispositivos, nomes_com_padrao
+from interface.prefs_manager import PrefsManager
+from interface.theme_manager import aplicar_estilo
+
+
+class ScrollConfiguracoes(QScrollArea):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._destino_scroll = 0
+        self._animacao_scroll = QPropertyAnimation(
+            self.verticalScrollBar(),
+            b"value",
+            self,
+        )
+        self._animacao_scroll.setDuration(180)
+        self._animacao_scroll.setEasingCurve(QEasingCurve.OutCubic)
+        self.verticalScrollBar().setSingleStep(12)
+
+    def wheelEvent(self, event):
+        delta = event.angleDelta().y()
+
+        if not delta:
+            super().wheelEvent(event)
+            return
+
+        barra = self.verticalScrollBar()
+        deslocamento = int(-(delta / 120) * 96)
+
+        if self._animacao_scroll.state() == QAbstractAnimation.State.Running:
+            destino_base = self._destino_scroll
+        else:
+            destino_base = barra.value()
+
+        self._destino_scroll = max(
+            barra.minimum(),
+            min(barra.maximum(), destino_base + deslocamento),
+        )
+
+        self._animacao_scroll.stop()
+        self._animacao_scroll.setStartValue(barra.value())
+        self._animacao_scroll.setEndValue(self._destino_scroll)
+        self._animacao_scroll.start()
+        event.accept()
+
 
 class ConfiguracoesScreen(QWidget):
     def __init__(self, parent=None, supabase_client=None, user_id=None):
         super().__init__(parent)
-        
         self.prefs_manager = PrefsManager(supabase_client, user_id)
-        self.layout = QVBoxLayout(self)
-        
-        # --- 1. Tema ---
-        self.layout.addWidget(QLabel("Escolha o Tema:"))
-        self.combo_tema = QComboBox()
-        self.combo_tema.addItems(["escuro", "claro", "contraste"])
-        
-        tema_atual = settings.get("visual", "tema") or "escuro"
-        index = self.combo_tema.findText(tema_atual)
-        if index != -1:
-            self.combo_tema.setCurrentIndex(index)
-        self.layout.addWidget(self.combo_tema)
-        
-        # --- 2. Tamanho da Fonte ---
-        self.layout.addWidget(QLabel("Tamanho da Fonte:"))
-        self.combo_fonte = QComboBox()
-        self.combo_fonte.addItems(["10px", "12px", "14px", "16px"])
-        
-        fonte_atual = settings.get("visual", "fonte") or "12px"
-        index_fonte = self.combo_fonte.findText(fonte_atual)
-        if index_fonte != -1:
-            self.combo_fonte.setCurrentIndex(index_fonte)
-        self.layout.addWidget(self.combo_fonte)
+        self._colunas_atuais = 0
 
-        # --- 3. Idioma ---
-        self.layout.addWidget(QLabel("Idioma:"))
-        self.combo_idioma = QComboBox()
-        self.combo_idioma.addItems(["pt_BR", "en_US", "es_ES"])
-        
-        idioma_atual = settings.get("geral", "idioma") or "pt_BR"
-        index_idioma = self.combo_idioma.findText(idioma_atual)
-        if index_idioma != -1:
-            self.combo_idioma.setCurrentIndex(index_idioma)
-        self.layout.addWidget(self.combo_idioma)
+        self.setObjectName("pagina_configuracoes")
 
-        # --- 4. Volume do Áudio (Separado) ---
-        self.layout.addWidget(QLabel("Volume do Áudio:"))
-        self.slider_volume = QSlider(Qt.Horizontal)
-        self.slider_volume.setRange(0, 100)
-        
-        volume_atual = int(settings.get("audio", "volume") or 80)
-        self.slider_volume.setValue(volume_atual)
-        self.layout.addWidget(self.slider_volume)
+        layout_principal = QVBoxLayout(self)
+        layout_principal.setContentsMargins(0, 0, 0, 0)
+        layout_principal.setSpacing(0)
 
-        # --- 5. Velocidade do Áudio (Separado) ---
-        self.layout.addWidget(QLabel("Velocidade do Áudio:"))
-        self.slider_velocidade = QSlider(Qt.Horizontal)
-        self.slider_velocidade.setRange(0, 100)
-        
-        velocidade_atual = int(settings.get("audio", "velocidade") or 80)
-        self.slider_velocidade.setValue(velocidade_atual)
-        self.layout.addWidget(self.slider_velocidade)
+        scroll = ScrollConfiguracoes()
+        scroll.setObjectName("scroll_configuracoes")
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-        # --- Dispositivos de áudio ---
-        self.lbl_microfone = QLabel("Microfone de entrada:")
-        self.combo_microfone = QComboBox()
-        self.combo_microfone.setAccessibleName("Microfone de entrada")
-        self.combo_microfone.setAccessibleDescription("Escolha o microfone usado para ouvir seus comandos.")
-        microfones, _ = listar_dispositivos()
-        self.combo_microfone.addItems(nomes_com_padrao(microfones))
-        microfone_atual = settings.get("audio", "microfone")
-        if microfone_atual:
-            indice = self.combo_microfone.findText(microfone_atual)
-            if indice >= 0:
-                self.combo_microfone.setCurrentIndex(indice)
-        self.lbl_microfone.setBuddy(self.combo_microfone)
-        self.layout.addWidget(self.lbl_microfone)
-        self.layout.addWidget(self.combo_microfone)
+        conteudo = QWidget()
+        conteudo.setObjectName("conteudo_configuracoes")
+        scroll.setWidget(conteudo)
 
-        self.lbl_saida = QLabel("Saída de áudio:")
-        self.combo_saida = QComboBox()
-        self.combo_saida.setAccessibleName("Saída de áudio")
-        self.combo_saida.setAccessibleDescription("Escolha o dispositivo que reproduzirá a voz do assistente.")
-        _, saidas = listar_dispositivos()
-        self.combo_saida.addItems(nomes_com_padrao(saidas))
-        saida_atual = settings.get("audio", "saida")
-        if saida_atual:
-            indice = self.combo_saida.findText(saida_atual)
-            if indice >= 0:
-                self.combo_saida.setCurrentIndex(indice)
-        self.lbl_saida.setBuddy(self.combo_saida)
-        self.layout.addWidget(self.lbl_saida)
-        self.layout.addWidget(self.combo_saida)
+        layout_conteudo = QVBoxLayout(conteudo)
+        layout_conteudo.setContentsMargins(40, 32, 40, 32)
+        layout_conteudo.setSpacing(20)
 
-        # --- Botão Salvar ---
-        self.btn_aplicar = QPushButton("Aplicar e Salvar Alterações")
-        self.btn_aplicar.clicked.connect(self.aplicar_configuracoes)
-        self.layout.addWidget(self.btn_aplicar)
-        
+        rotulo = QLabel("PREFERÊNCIAS")
+        rotulo.setObjectName("rotulo_pagina")
+
+        titulo = QLabel("Configurações")
+        titulo.setObjectName("titulo_pagina")
+
+        subtitulo = QLabel(
+            "Personalize a aparência, a voz e os dispositivos usados pelo V.INC."
+        )
+        subtitulo.setObjectName("subtitulo_pagina")
+        subtitulo.setWordWrap(True)
+
+        layout_conteudo.addWidget(rotulo)
+        layout_conteudo.addWidget(titulo)
+        layout_conteudo.addWidget(subtitulo)
+
+        self.grid_cards = QGridLayout()
+        self.grid_cards.setContentsMargins(0, 8, 0, 0)
+        self.grid_cards.setHorizontalSpacing(16)
+        self.grid_cards.setVerticalSpacing(16)
+
+        self.card_visual = self._criar_card_visual()
+        self.card_audio = self._criar_card_audio()
+        self.cards = [self.card_visual, self.card_audio]
+        layout_conteudo.addLayout(self.grid_cards)
+
+        rodape = QHBoxLayout()
+        rodape.setSpacing(14)
+
         self.lbl_status = QLabel("")
-        self.layout.addWidget(self.lbl_status)
-        
+        self.lbl_status.setObjectName("status_configuracoes")
+        self.lbl_status.setWordWrap(True)
+
+        self.btn_aplicar = QPushButton("Salvar alterações")
+        self.btn_aplicar.setObjectName("botao_salvar_configuracoes")
+        self.btn_aplicar.setCursor(Qt.PointingHandCursor)
+        self.btn_aplicar.setAccessibleDescription(
+            "Salva e aplica as preferências selecionadas."
+        )
+        self.btn_aplicar.clicked.connect(self.aplicar_configuracoes)
+
+        rodape.addWidget(self.lbl_status, 1)
+        rodape.addWidget(self.btn_aplicar)
+        layout_conteudo.addLayout(rodape)
+        layout_conteudo.addStretch()
+
+        layout_principal.addWidget(scroll)
+        self._organizar_cards(2)
+
+    def _criar_card_visual(self):
+        card, layout = self._criar_card(
+            "Aparência e idioma",
+            "Defina como o aplicativo e a voz devem ser apresentados.",
+        )
+
+        self.combo_tema = self._criar_combo(
+            "Tema visual",
+            "Escolha as cores usadas na interface.",
+        )
+        self.combo_tema.addItem("Escuro azul", "escuro")
+        self.combo_tema.addItem("Claro", "claro")
+        self.combo_tema.addItem("Alto contraste", "contraste")
+        self._selecionar_dado(
+            self.combo_tema,
+            settings.get("visual", "tema") or "escuro",
+        )
+        layout.addWidget(self._criar_campo("Tema", self.combo_tema))
+
+        self.combo_fonte = self._criar_combo(
+            "Tamanho da fonte",
+            "Altera o tamanho dos textos em toda a interface.",
+        )
+        self.combo_fonte.addItem("Pequena — 10 px", "10px")
+        self.combo_fonte.addItem("Padrão — 12 px", "12px")
+        self.combo_fonte.addItem("Grande — 14 px", "14px")
+        self.combo_fonte.addItem("Muito grande — 16 px", "16px")
+        self._selecionar_dado(
+            self.combo_fonte,
+            settings.get("visual", "fonte") or "12px",
+        )
+        layout.addWidget(self._criar_campo("Tamanho da fonte", self.combo_fonte))
+
+        self.combo_idioma = self._criar_combo(
+            "Idioma da voz",
+            "Define o idioma do reconhecimento e das respostas faladas.",
+        )
+        self.combo_idioma.addItem("Português do Brasil", "pt_BR")
+        self.combo_idioma.addItem("English — United States", "en_US")
+        self.combo_idioma.addItem("Español — España", "es_ES")
+        self._selecionar_dado(
+            self.combo_idioma,
+            settings.get("geral", "idioma") or "pt_BR",
+        )
+        layout.addWidget(self._criar_campo("Idioma da voz", self.combo_idioma))
+        layout.addStretch()
+
+        return card
+
+    def _criar_card_audio(self):
+        card, layout = self._criar_card(
+            "Áudio e dispositivos",
+            "Escolha como o V.INC escuta seus comandos e reproduz as respostas.",
+        )
+
+        self.combo_microfone = self._criar_combo(
+            "Microfone de entrada",
+            "Escolha o microfone usado para ouvir seus comandos.",
+        )
+        self.combo_saida = self._criar_combo(
+            "Saída de áudio",
+            "Escolha o dispositivo que reproduzirá a voz do assistente.",
+        )
+        self._carregar_dispositivos()
+
+        layout.addWidget(
+            self._criar_campo("Microfone de entrada", self.combo_microfone)
+        )
+        layout.addWidget(self._criar_campo("Saída de áudio", self.combo_saida))
+
+        self.lbl_volume_valor = QLabel()
+        self.lbl_volume_valor.setObjectName("valor_configuracao")
+        self.slider_volume = self._criar_slider(
+            int(settings.get("audio", "volume") or 80),
+            self.lbl_volume_valor,
+            "%",
+        )
+        layout.addWidget(
+            self._criar_campo_slider(
+                "Volume das respostas",
+                self.slider_volume,
+                self.lbl_volume_valor,
+            )
+        )
+
+        self.lbl_velocidade_valor = QLabel()
+        self.lbl_velocidade_valor.setObjectName("valor_configuracao")
+        self.slider_velocidade = self._criar_slider(
+            int(settings.get("audio", "velocidade") or 80),
+            self.lbl_velocidade_valor,
+            "%",
+        )
+        layout.addWidget(
+            self._criar_campo_slider(
+                "Velocidade da voz",
+                self.slider_velocidade,
+                self.lbl_velocidade_valor,
+            )
+        )
+
+        self.btn_atualizar_dispositivos = QPushButton("Atualizar dispositivos")
+        self.btn_atualizar_dispositivos.setObjectName(
+            "botao_secundario_configuracoes"
+        )
+        self.btn_atualizar_dispositivos.setCursor(Qt.PointingHandCursor)
+        self.btn_atualizar_dispositivos.clicked.connect(
+            self._carregar_dispositivos
+        )
+        layout.addWidget(
+            self.btn_atualizar_dispositivos,
+            alignment=Qt.AlignRight,
+        )
+
+        return card
+
+    @staticmethod
+    def _criar_card(titulo, descricao):
+        card = QFrame()
+        card.setObjectName("card_configuracao")
+        card.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+
+        layout = QVBoxLayout(card)
+        layout.setContentsMargins(22, 20, 22, 22)
+        layout.setSpacing(14)
+
+        lbl_titulo = QLabel(titulo)
+        lbl_titulo.setObjectName("titulo_card_configuracao")
+
+        lbl_descricao = QLabel(descricao)
+        lbl_descricao.setObjectName("descricao_card_configuracao")
+        lbl_descricao.setWordWrap(True)
+
+        layout.addWidget(lbl_titulo)
+        layout.addWidget(lbl_descricao)
+        layout.addSpacing(4)
+        return card, layout
+
+    @staticmethod
+    def _criar_combo(nome_acessivel, descricao_acessivel):
+        combo = QComboBox()
+        combo.setObjectName("campo_configuracao")
+        combo.setMinimumHeight(42)
+        combo.setAccessibleName(nome_acessivel)
+        combo.setAccessibleDescription(descricao_acessivel)
+        return combo
+
+    @staticmethod
+    def _criar_campo(titulo, controle):
+        grupo = QFrame()
+        grupo.setObjectName("grupo_configuracao")
+
+        layout = QVBoxLayout(grupo)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(6)
+
+        label = QLabel(titulo)
+        label.setObjectName("label_configuracao")
+        label.setBuddy(controle)
+
+        layout.addWidget(label)
+        layout.addWidget(controle)
+        return grupo
+
+    @staticmethod
+    def _criar_slider(valor, label_valor, sufixo):
+        slider = QSlider(Qt.Horizontal)
+        slider.setObjectName("slider_configuracao")
+        slider.setRange(0, 100)
+        slider.setValue(valor)
+        slider.valueChanged.connect(
+            lambda atual: label_valor.setText(f"{atual}{sufixo}")
+        )
+        label_valor.setText(f"{valor}{sufixo}")
+        return slider
+
+    @staticmethod
+    def _criar_campo_slider(titulo, slider, label_valor):
+        grupo = QFrame()
+        grupo.setObjectName("grupo_configuracao")
+
+        layout = QVBoxLayout(grupo)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(6)
+
+        cabecalho = QHBoxLayout()
+        label = QLabel(titulo)
+        label.setObjectName("label_configuracao")
+        label.setBuddy(slider)
+        cabecalho.addWidget(label)
+        cabecalho.addStretch()
+        cabecalho.addWidget(label_valor)
+
+        layout.addLayout(cabecalho)
+        layout.addWidget(slider)
+        return grupo
+
+    def _carregar_dispositivos(self):
+        microfone_anterior = (
+            self.combo_microfone.currentText()
+            if self.combo_microfone.count()
+            else settings.get("audio", "microfone")
+        )
+        saida_anterior = (
+            self.combo_saida.currentText()
+            if self.combo_saida.count()
+            else settings.get("audio", "saida")
+        )
+
+        microfones, saidas = listar_dispositivos()
+        self.combo_microfone.clear()
+        self.combo_saida.clear()
+        self.combo_microfone.addItems(nomes_com_padrao(microfones))
+        self.combo_saida.addItems(nomes_com_padrao(saidas))
+
+        self._selecionar_texto(self.combo_microfone, microfone_anterior)
+        self._selecionar_texto(self.combo_saida, saida_anterior)
+
     def aplicar_configuracoes(self):
-        # Coleta os valores da interface de forma independente
-        novo_tema = self.combo_tema.currentText()
-        nova_fonte = self.combo_fonte.currentText()
-        novo_idioma = self.combo_idioma.currentText()
-        novo_volume = self.slider_volume.value()
-        nova_velocidade = self.slider_velocidade.value()
-        novo_microfone = self.combo_microfone.currentText()
-        nova_saida = self.combo_saida.currentText()
+        preferencias = {
+            "tema": self.combo_tema.currentData(),
+            "fonte": self.combo_fonte.currentData(),
+            "idioma": self.combo_idioma.currentData(),
+            "volume": self.slider_volume.value(),
+            "velocidade": self.slider_velocidade.value(),
+            "microfone": self.combo_microfone.currentText(),
+            "saida": self.combo_saida.currentText(),
+        }
 
-        # Atualiza o arquivo de configurações local (settings)
-        settings.set("visual", "tema", novo_tema)
-        settings.set("visual", "fonte", nova_fonte)
-        settings.set("geral", "idioma", novo_idioma)
-        settings.set("audio", "volume", novo_volume)
-        settings.set("audio", "velocidade", nova_velocidade)
-        settings.set("audio", "microfone", novo_microfone)
-        settings.set("audio", "saida", nova_saida)
+        self.btn_aplicar.setEnabled(False)
+        self.btn_aplicar.setText("Salvando...")
 
-        # Salva via PrefsManager no Supabase
-        self.prefs_manager.salvar_preferencia("tema", novo_tema)
-        self.prefs_manager.salvar_preferencia("fonte", nova_fonte)
-        self.prefs_manager.salvar_preferencia("idioma", novo_idioma)
-        self.prefs_manager.salvar_preferencia("volume", str(novo_volume))
-        self.prefs_manager.salvar_preferencia("velocidade", str(nova_velocidade))
+        try:
+            sincronizado = self.prefs_manager.salvar(preferencias)
+            aplicar_estilo(preferencias["tema"], preferencias["fonte"])
 
-        # Aplica o QSS do Tema e a nova fonte globalmente
-        pasta_telas = os.path.dirname(os.path.abspath(__file__))
-        raiz = os.path.dirname(os.path.dirname(pasta_telas))
-        
-        caminho_base = os.path.join(raiz, "interface", "estilos", "base.qss")
-        caminho_tema = os.path.join(raiz, "interface", "temas", f"{novo_tema}.qss")
-        
-        if os.path.exists(caminho_base) and os.path.exists(caminho_tema):
-            with open(caminho_base, "r", encoding="utf-8") as f1, \
-                 open(caminho_tema, "r", encoding="utf-8") as f2:
-                
-                estilo_final = f1.read() + "\n" + f2.read() + f"\nQWidget {{ font-size: {nova_fonte}; }}"
-                QApplication.instance().setStyleSheet(estilo_final)
-                
-                self.lbl_status.setText("Configurações aplicadas e salvas com sucesso!")
-        else:
-            self.lbl_status.setText("Erro: Arquivos de estilo não encontrados!")
-            print(f"DEBUG: Base em {caminho_base}")
+            if sincronizado is False:
+                self.lbl_status.setText(
+                    "Alterações salvas neste computador. "
+                    "A sincronização online não foi concluída."
+                )
+            else:
+                self.lbl_status.setText("Alterações aplicadas e salvas.")
+
+        except Exception as erro:
+            print(f"Erro ao salvar configurações: {erro}")
+            self.lbl_status.setText(
+                "Não foi possível salvar as alterações. Tente novamente."
+            )
+
+        finally:
+            self.btn_aplicar.setEnabled(True)
+            self.btn_aplicar.setText("Salvar alterações")
+
+    def _organizar_cards(self, colunas):
+        if colunas == self._colunas_atuais:
+            return
+
+        for coluna in range(max(2, self._colunas_atuais)):
+            self.grid_cards.setColumnStretch(coluna, 0)
+
+        while self.grid_cards.count():
+            item = self.grid_cards.takeAt(0)
+            if item.widget():
+                item.widget().setParent(None)
+
+        for indice, card in enumerate(self.cards):
+            linha = indice // colunas
+            coluna = indice % colunas
+            self.grid_cards.addWidget(card, linha, coluna)
+
+        for coluna in range(colunas):
+            self.grid_cards.setColumnStretch(coluna, 1)
+
+        self._colunas_atuais = colunas
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._organizar_cards(2 if event.size().width() >= 760 else 1)
+
+    @staticmethod
+    def _selecionar_dado(combo, dado):
+        indice = combo.findData(dado)
+        if indice >= 0:
+            combo.setCurrentIndex(indice)
+
+    @staticmethod
+    def _selecionar_texto(combo, texto):
+        if not texto:
+            return
+        indice = combo.findText(texto)
+        if indice >= 0:
+            combo.setCurrentIndex(indice)

@@ -62,10 +62,24 @@ class PrefsManager:
 
         categoria, nome = self.MAPA_PREFERENCIAS[chave]
         settings.set(categoria, nome, valor)
+        return self._sincronizar_supabase()
+
+    def salvar(self, preferencias):
+        """Salva várias preferências e sincroniza apenas uma vez."""
+        for chave, valor in preferencias.items():
+            if chave not in self.MAPA_PREFERENCIAS:
+                raise ValueError(f"Preferência desconhecida: {chave}")
+
+            categoria, nome = self.MAPA_PREFERENCIAS[chave]
+            settings.set(categoria, nome, valor)
+
+        return self._sincronizar_supabase()
+
+    def _sincronizar_supabase(self):
         prefs = self.carregar()
 
         if not self.supabase or not self.user_id:
-            return
+            return None
 
         try:
             dados_upsert = {
@@ -77,5 +91,7 @@ class PrefsManager:
                 "velocidade": int(prefs.get("velocidade", 80)),
             }
             self.supabase.table("configuracoes").upsert(dados_upsert).execute()
+            return True
         except Exception as e:
             print(f"Erro ao sincronizar com Supabase: {e}")
+            return False

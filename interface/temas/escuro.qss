@@ -91,6 +91,105 @@ QLabel {
 #lista_historico QScrollBar::handle:vertical { background-color: #476D9C; }
 #lista_historico QScrollBar::handle:vertical:hover { background-color: #8FC5FF; }
 
+#pagina_configuracoes,
+#conteudo_configuracoes { background-color: #07162B; }
+#card_configuracao {
+    background-color: #102A4C;
+    border-color: #21456F;
+}
+#titulo_card_configuracao, #label_configuracao { color: #F2F7FF; }
+#descricao_card_configuracao { color: #AFC3DC; }
+#campo_configuracao {
+    background-color: #16385F;
+    color: #F2F7FF;
+    border-color: #476D9C;
+}
+#campo_configuracao:hover, #campo_configuracao:focus {
+    border-color: #8FC5FF;
+}
+#campo_configuracao::down-arrow {
+    image: url(interface/assets/chevron_down_dark.svg);
+}
+#campo_configuracao QAbstractItemView {
+    background-color: #102A4C;
+    color: #F2F7FF;
+    selection-background-color: #20539B;
+    selection-color: #FFFFFF;
+    border: 1px solid #476D9C;
+}
+#valor_configuracao { color: #8FC5FF; }
+#slider_configuracao::groove:horizontal { background-color: #16385F; }
+#slider_configuracao::sub-page:horizontal { background-color: #20539B; }
+#slider_configuracao::handle:horizontal {
+    background-color: #A9D2FF;
+    border-color: #07162B;
+}
+#botao_secundario_configuracoes {
+    background-color: transparent;
+    color: #A9D2FF;
+    border-color: #476D9C;
+}
+#botao_secundario_configuracoes:hover { background-color: #16385F; }
+#botao_salvar_configuracoes {
+    background-color: #A9D2FF;
+    color: #07162B;
+    border-color: #A9D2FF;
+}
+#botao_salvar_configuracoes:hover { background-color: #8FC5FF; }
+#botao_salvar_configuracoes:disabled { background-color: #476D9C; }
+#status_configuracoes { color: #8FC5FF; }
+#scroll_configuracoes QScrollBar::handle:vertical {
+    background-color: #476D9C;
+}
+#scroll_configuracoes QScrollBar::handle:vertical:hover {
+    background-color: #8FC5FF;
+}
+
+#pagina_inicio, #conteudo_inicio { background-color: #07162B; }
+#estado_assistente { color: #A9D2FF; }
+#botao_microfone {
+    background-color: #A9D2FF;
+    color: #07162B;
+    border-color: #07162B;
+}
+#botao_microfone:hover { background-color: #8FC5FF; }
+#card_audio_inicio {
+    background-color: #102A4C;
+    border-color: #476D9C;
+}
+#titulo_campo_audio { color: #F2F7FF; }
+#campo_audio_inicio {
+    background-color: #16385F;
+    color: #F2F7FF;
+    border-color: #476D9C;
+}
+#campo_audio_inicio:hover, #campo_audio_inicio:focus {
+    border-color: #A9D2FF;
+}
+#campo_audio_inicio::down-arrow {
+    image: url(interface/assets/chevron_down_dark.svg);
+}
+#campo_audio_inicio QAbstractItemView {
+    background-color: #102A4C;
+    color: #F2F7FF;
+    selection-background-color: #20539B;
+    selection-color: #FFFFFF;
+    border: 1px solid #476D9C;
+}
+#divisor_audio_inicio { background-color: #476D9C; border: none; }
+#botao_iniciar_assistente {
+    background-color: #A9D2FF;
+    color: #07162B;
+    border-color: #A9D2FF;
+}
+#botao_iniciar_assistente:hover { background-color: #8FC5FF; }
+#botao_configuracoes_voz {
+    background-color: transparent;
+    color: #A9D2FF;
+    border-color: #A9D2FF;
+}
+#botao_configuracoes_voz:hover { background-color: #16385F; }
+
 /* Card de Login - */
 #login_card {
     background-color: #102A4C;

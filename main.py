@@ -13,8 +13,7 @@ from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QAccessible
 from supabase import create_client
 from interface.janela import JanelaPrincipal
-from config import settings
-from interface.prefs_manager import PrefsManager
+from interface.theme_manager import carregar_estilo
 
 # 2. Inicializa o cliente do Supabase com as variáveis de ambiente
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -26,33 +25,12 @@ if not SUPABASE_URL or not SUPABASE_KEY:
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-def carregar_estilo_global():
-    tema = settings.get("visual", "tema")
-    # Define caminhos baseados na estrutura de pastas correta
-    raiz = os.path.dirname(os.path.abspath(__file__))
-    caminho_base = os.path.join(raiz, "interface", "estilos", "base.qss")
-    caminho_tema = os.path.join(raiz, "interface", "temas", f"{tema}.qss")
-    
-    estilo_total = ""
-    
-    # Carrega o base.qss
-    if os.path.exists(caminho_base):
-        with open(caminho_base, "r", encoding="utf-8") as f:
-            estilo_total += f.read()
-            
-    # Carrega o tema selecionado
-    if os.path.exists(caminho_tema):
-        with open(caminho_tema, "r", encoding="utf-8") as f:
-            estilo_total += f.read()
-            
-    return estilo_total
-
 # Inicialização da Aplicação
 app = QApplication(sys.argv)
 QAccessible.setActive(True)
 
 # Aplica o estilo concatenado
-app.setStyleSheet(carregar_estilo_global())
+app.setStyleSheet(carregar_estilo())
 
 # Cria a instância da Janela Principal passando o cliente Supabase
 janela = JanelaPrincipal(supabase_client=supabase)

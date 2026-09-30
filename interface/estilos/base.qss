@@ -184,6 +184,169 @@ QWidget {
     background: transparent;
 }
 
+#card_configuracao {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 16px;
+}
+
+#grupo_configuracao {
+    background-color: transparent;
+    border: none;
+}
+
+#scroll_configuracoes {
+    border: none;
+}
+
+#titulo_card_configuracao {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+#descricao_card_configuracao {
+    font-size: 13px;
+}
+
+#label_configuracao {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#campo_configuracao {
+    padding: 8px 38px 8px 12px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 10px;
+}
+
+#campo_configuracao::drop-down {
+    width: 34px;
+    border: none;
+    background-color: transparent;
+}
+
+#campo_configuracao::down-arrow {
+    width: 12px;
+    height: 8px;
+}
+
+#valor_configuracao,
+#status_configuracoes {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#slider_configuracao {
+    min-height: 24px;
+    background-color: transparent;
+    border: none;
+}
+
+#slider_configuracao::groove:horizontal {
+    height: 6px;
+    border: none;
+    border-radius: 3px;
+}
+
+#slider_configuracao::sub-page:horizontal {
+    border-radius: 3px;
+}
+
+#slider_configuracao::handle:horizontal {
+    width: 18px;
+    height: 18px;
+    margin: -6px 0;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 9px;
+}
+
+#botao_secundario_configuracoes,
+#botao_salvar_configuracoes {
+    min-height: 20px;
+    padding: 10px 16px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 10px;
+}
+
+#scroll_configuracoes QScrollBar:vertical {
+    width: 10px;
+    margin: 6px 2px;
+    border: none;
+    background: transparent;
+}
+
+#scroll_configuracoes QScrollBar::handle:vertical {
+    min-height: 36px;
+    border-radius: 4px;
+}
+
+#scroll_configuracoes QScrollBar::add-line:vertical,
+#scroll_configuracoes QScrollBar::sub-line:vertical {
+    height: 0;
+    border: none;
+    background: transparent;
+}
+
+#scroll_configuracoes QScrollBar::add-page:vertical,
+#scroll_configuracoes QScrollBar::sub-page:vertical {
+    background: transparent;
+}
+
+#estado_assistente {
+    border: none;
+    margin-top: 6px;
+}
+
+#botao_microfone {
+    border-width: 4px;
+    border-style: solid;
+    border-radius: 90px;
+    font-size: 60px;
+}
+
+#card_audio_inicio {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 20px;
+}
+
+#titulo_campo_audio {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+#campo_audio_inicio {
+    padding: 8px 40px 8px 16px;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+#campo_audio_inicio::drop-down {
+    width: 34px;
+    border: none;
+    background-color: transparent;
+}
+
+#campo_audio_inicio::down-arrow {
+    width: 12px;
+    height: 8px;
+}
+
+#botao_iniciar_assistente,
+#botao_configuracoes_voz {
+    min-height: 20px;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
 #login_card {
     border-radius: 20px;
     border: 1px solid #334155;
