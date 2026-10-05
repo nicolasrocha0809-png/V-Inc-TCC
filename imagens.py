@@ -156,9 +156,37 @@ def encontrar_imagens(forcar_atualizacao=False):
     return imagens.copy()
 
 
-def buscar_imagens(nome_solicitado, forcar_atualizacao=False):
+def caminho_corresponde_pasta(caminho, pasta_solicitada):
+    if not pasta_solicitada:
+        return True
+
+    pasta_normalizada = normalizar_nome(str(pasta_solicitada))
+    pasta_normalizada = re.sub(
+        r"^(?:pasta|diretorio)\s+",
+        "",
+        pasta_normalizada,
+    ).strip()
+
+    if not pasta_normalizada:
+        return True
+
+    return any(
+        normalizar_nome(parte) == pasta_normalizada
+        for parte in caminho.parent.parts
+    )
+
+
+def buscar_imagens(nome_solicitado, forcar_atualizacao=False, pasta_solicitada=None):
     cache_ja_existia = _cache_imagens is not None
     imagens = encontrar_imagens(forcar_atualizacao)
+
+    if pasta_solicitada:
+        imagens = [
+            caminho
+            for caminho in imagens
+            if caminho_corresponde_pasta(caminho, pasta_solicitada)
+        ]
+
     nome_informado = str(nome_solicitado).strip()
 
     nome_informado = re.sub(
@@ -235,14 +263,18 @@ def buscar_imagens(nome_solicitado, forcar_atualizacao=False):
     if cache_ja_existia and not forcar_atualizacao:
         return buscar_imagens(
             nome_solicitado,
+            pasta_solicitada=pasta_solicitada,
             forcar_atualizacao=True,
         )
 
     return []
 
 
-def localizar_imagem(nome_solicitado):
-    resultados = buscar_imagens(nome_solicitado)
+def localizar_imagem(nome_solicitado, pasta_solicitada=None):
+    resultados = buscar_imagens(
+        nome_solicitado,
+        pasta_solicitada=pasta_solicitada,
+    )
 
     if not resultados:
         return {
@@ -319,7 +351,7 @@ def descrever_imagem(caminho_imagem):
         ],
         config=types.GenerateContentConfig(
             temperature=0.2,
-            max_output_tokens=2000,
+            max_output_tokens=500,
             thinking_config=types.ThinkingConfig(
                 thinking_level="low",
             ),

@@ -26,7 +26,7 @@ Sua tarefa é interpretar o comando do usuário e converter a intenção em uma 
 REGRAS OBRIGATÓRIAS:
 1. Devolva EXCLUSIVAMENTE um JSON válido, sem texto extra antes ou depois.
 O objeto deve usar exatamente este formato:
-{"acao": "nome_da_acao", "alvo": "objeto_ou_null", "confirmacao_necessaria": true, "texto_resposta": "frase_curta", "site": "url_ou_null"}
+{"acao": "nome_da_acao", "alvo": "objeto_ou_null", "pasta": "nome_da_pasta_ou_null", "confirmacao_necessaria": true, "texto_resposta": "frase_curta", "site": "url_ou_null"}
 Use null quando um campo não se aplicar. Nunca omita as chaves.
 
 2. A "acao" DEVE ser OBRIGATORIAMENTE uma das opções abaixo:
@@ -38,12 +38,12 @@ Use null quando um campo não se aplicar. Nunca omita as chaves.
    - calcular
 
 3. Campos obrigatórios por ação:
-- "responder": use "texto_resposta"; "alvo" e "site" devem ser null.
-- "calcular": use "alvo" para a expressão matemática e "site": null.
-- "abrir_site": use "alvo" para descrever o objetivo e "site" para o domínio ou URL.
-- "abrir_app": use "alvo" para o nome do aplicativo e "site": null.
-- "ler_imagem": use "alvo" para o nome da imagem e "site": null.
-- "pesquisar_video": use "alvo" para o assunto da busca e "site" para o serviço, quando definido.
+- "responder": use "texto_resposta"; "alvo", "pasta" e "site" devem ser null.
+- "calcular": use "alvo" para a expressão matemática; "pasta" e "site" devem ser null.
+- "abrir_site": use "alvo" para descrever o objetivo e "site" para o domínio ou URL; "pasta" deve ser null.
+- "abrir_app": use "alvo" para o nome do aplicativo; "pasta" e "site" devem ser null.
+- "ler_imagem": use "alvo" para o nome da imagem, "pasta" para a pasta informada pelo usuário ou null e "site": null.
+- "pesquisar_video": use "alvo" para o assunto da busca e "site" para o serviço, quando definido; "pasta" deve ser null.
 - "texto_resposta" deve sempre existir e ser uma mensagem curta em português.
 
 4. Regras para "abrir_site":
@@ -60,10 +60,13 @@ Use null quando um campo não se aplicar. Nunca omita as chaves.
 
 6. Regras para "ler_imagem":
 - Use esta ação para pedidos de ler, analisar ou descrever uma imagem local.
-- Coloque em "alvo" somente o nome informado pelo usuário.
-- Não invente nomes de arquivos.
+- Coloque em "alvo" somente o nome informado pelo usuário, sem incluir a pasta na mesma string.
+- Se o usuário informar uma pasta no mesmo pedido, coloque somente o nome dessa pasta em "pasta".
+- Se o usuário não informar uma pasta, use "pasta": null.
+- Não invente nomes de arquivos nem nomes de pastas.
 - Se o usuário não especificar a imagem, peça o nome e defina "confirmacao_necessaria": true.
 - Exemplos: "leia a imagem trabalho", "descreva a foto cachorro" e "analise a imagem gráfico".
+- Exemplo com pasta: "descreva a imagem montanhas que está na pasta imagens" deve usar "alvo": "montanhas" e "pasta": "imagens".
 
 7. Regras para "pesquisar_video":
 - Use esta ação para pedidos de buscar, assistir ou procurar vídeos ou lives.
@@ -100,45 +103,48 @@ Use null quando um campo não se aplicar. Nunca omita as chaves.
 
 Exemplos corretos:
 Usuário: "Queria ver vídeos engraçados"
-Resposta: {"acao": "pesquisar_video", "alvo": "vídeos engraçados", "confirmacao_necessaria": true, "texto_resposta": "Em qual site você prefere pesquisar esses vídeos engraçados?", "site": null}
+Resposta: {"acao": "pesquisar_video", "alvo": "vídeos engraçados", "pasta": null, "confirmacao_necessaria": true, "texto_resposta": "Em qual site você prefere pesquisar esses vídeos engraçados?", "site": null}
 
 Usuário: "Queria ver sobre meu RG"
-Resposta: {"acao": "abrir_site", "alvo": "ver sobre RG", "site": "gov.br", "confirmacao_necessaria": false, "texto_resposta": "Abrindo o site do governo para informações sobre RG."}
+Resposta: {"acao": "abrir_site", "alvo": "ver sobre RG", "site": "gov.br", "pasta": null, "confirmacao_necessaria": false, "texto_resposta": "Abrindo o site do governo para informações sobre RG."}
 
 Usuário: "Queria ver a wiki sobre mamíferos"
-Resposta: {"acao": "abrir_site", "alvo": "sobre mamíferos", "site": "pt.wikipedia.org/wiki/Mam%C3%ADferos", "confirmacao_necessaria": false, "texto_resposta": "Abrindo a página da Wikipédia sobre mamíferos."}
+Resposta: {"acao": "abrir_site", "alvo": "sobre mamíferos", "site": "pt.wikipedia.org/wiki/Mam%C3%ADferos", "pasta": null, "confirmacao_necessaria": false, "texto_resposta": "Abrindo a página da Wikipédia sobre mamíferos."}
 
 Usuário: "poderia pesquisar quem foi Napoleão Bonaparte?"
-Resposta: {"acao": "abrir_site", "alvo": "sobre Napoleão Bonaparte", "site": "google.com/search?q=napoleao+bonaparte", "confirmacao_necessaria": false, "texto_resposta": "Pesquisando sobre Napoleão Bonaparte no Google."}
+Resposta: {"acao": "abrir_site", "alvo": "sobre Napoleão Bonaparte", "site": "google.com/search?q=napoleao+bonaparte", "pasta": null, "confirmacao_necessaria": false, "texto_resposta": "Pesquisando sobre Napoleão Bonaparte no Google."}
 
 Usuário: "Quanto é dois mais dois?"
-Resposta: {"acao": "calcular", "alvo": "2 + 2", "confirmacao_necessaria": false, "texto_resposta": "Calculando...", "site": null}
+Resposta: {"acao": "calcular", "alvo": "2 + 2", "pasta": null, "confirmacao_necessaria": false, "texto_resposta": "Calculando...", "site": null}
 
 Usuário: "Quero abrir o Word"
-Resposta: {"acao": "abrir_app", "alvo": "Word", "confirmacao_necessaria": false, "texto_resposta": "Abrindo o aplicativo Word.", "site": null}
+Resposta: {"acao": "abrir_app", "alvo": "Word", "pasta": null, "confirmacao_necessaria": false, "texto_resposta": "Abrindo o aplicativo Word.", "site": null}
 
 Usuário: Descreva a imagem foto da viagem
-Resposta: {"acao": "ler_imagem", "alvo": "foto da viagem", "confirmacao_necessaria": false, "texto_resposta": "Vou procurar e descrever essa imagem.", "site": null}
+Resposta: {"acao": "ler_imagem", "alvo": "foto da viagem", "pasta": null, "confirmacao_necessaria": false, "texto_resposta": "Vou procurar e descrever essa imagem.", "site": null}
+
+Usuário: Descreva a imagem montanhas que está na pasta imagens
+Resposta: {"acao": "ler_imagem", "alvo": "montanhas", "pasta": "imagens", "confirmacao_necessaria": false, "texto_resposta": "Vou procurar e descrever essa imagem.", "site": null}
 
 Exemplos incorretos:
 Usuário: "Me dê uma receita de bolo de cenoura"
-Resposta incorreta: {"acao": "responder", "alvo": null, "confirmacao_necessaria": false, "texto_resposta": "Aqui está a receita.", "site": null}
+Resposta incorreta: {"acao": "responder", "alvo": null, "pasta": null, "confirmacao_necessaria": false, "texto_resposta": "Aqui está a receita.", "site": null}
 Motivo: pedido de receita não é uma pergunta simples; o melhor é sugerir pesquisar_video ou abrir_site.
 
 Usuário: "Quero pesquisar"
-Resposta incorreta: {"acao": "abrir_site", "alvo": "pesquisa", "site": "google.com", "confirmacao_necessaria": false, "texto_resposta": "Pesquisando."}
+Resposta incorreta: {"acao": "abrir_site", "alvo": "pesquisa", "site": "google.com", "pasta": null, "confirmacao_necessaria": false, "texto_resposta": "Pesquisando."}
 Motivo: o pedido é vago; deve pedir confirmação.
 
 Usuário: "Quanto é 5 mais?"
-Resposta incorreta: {"acao": "calcular", "alvo": "5 +", "confirmacao_necessaria": false, "texto_resposta": "3", "site": null}
+Resposta incorreta: {"acao": "calcular", "alvo": "5 +", "pasta": null, "confirmacao_necessaria": false, "texto_resposta": "3", "site": null}
 Motivo: a expressão está incompleta; deve pedir esclarecimento.
 
 Usuário: "Quero ver vídeos"
-Resposta incorreta: {"acao": "abrir_site", "alvo": "vídeos", "site": "google.com", "confirmacao_necessaria": false, "texto_resposta": "Abrindo vídeos."}
+Resposta incorreta: {"acao": "abrir_site", "alvo": "vídeos", "site": "google.com", "pasta": null, "confirmacao_necessaria": false, "texto_resposta": "Abrindo vídeos."}
 Motivo: a intenção é buscar vídeos, então a ação correta é pesquisar_video e pedir confirmação.
 
 Usuário: "Abra o navegador"
-Resposta incorreta: {"acao": "abrir_site", "alvo": "navegador", "site": "google.com", "confirmacao_necessaria": false, "texto_resposta": "Abrindo o navegador."}
+Resposta incorreta: {"acao": "abrir_site", "alvo": "navegador", "site": "google.com", "pasta": null, "confirmacao_necessaria": false, "texto_resposta": "Abrindo o navegador."}
 Motivo: se o usuário quer abrir um aplicativo, a ação correta é abrir_app, não abrir_site."""
 
 
@@ -170,8 +176,11 @@ def pensar(texto_falado, historico=None):
         "texto_resposta",
         "site",
     }
-    if set(dicionario) != chaves_obrigatorias:
+    chaves_permitidas = chaves_obrigatorias | {"pasta"}
+    if not chaves_obrigatorias.issubset(dicionario) or not set(dicionario).issubset(chaves_permitidas):
         raise ValueError("A resposta da IA não segue o contrato esperado")
+
+    dicionario.setdefault("pasta", None)
     if dicionario.get("acao") not in AÇÕES_PERMITIDAS:
         raise ValueError("A resposta da IA contém uma ação não permitida")
     if not isinstance(dicionario.get("confirmacao_necessaria"), bool):
@@ -198,6 +207,12 @@ def pensar(texto_falado, historico=None):
         raise ValueError(f"A ação {acao} não deve conter site")
     if dicionario["site"] is not None and not isinstance(dicionario["site"], str):
         raise ValueError("O campo site precisa ser texto ou null")
+
+    pasta = dicionario["pasta"]
+    if pasta is not None and (not isinstance(pasta, str) or not pasta.strip()):
+        raise ValueError("O campo pasta precisa ser texto ou null")
+    if acao != "ler_imagem" and pasta is not None:
+        raise ValueError(f"A ação {acao} não deve conter pasta")
 
     return dicionario
 

@@ -503,19 +503,36 @@ while True:
 
             elif dicionario_resposta['acao'] == "ler_imagem":
                 alvo = dicionario_resposta["alvo"]
+                pasta = dicionario_resposta.get("pasta")
 
-                aviso_busca = f"Procurando a imagem {alvo}. Aguarde um momento."
+                if pasta:
+                    aviso_busca = (
+                        f"Procurando a imagem {alvo} na pasta {pasta}. "
+                        "Aguarde um momento."
+                    )
+                else:
+                    aviso_busca = f"Procurando a imagem {alvo}. Aguarde um momento."
+
                 print(aviso_busca)
                 falar(aviso_busca)
 
-                resultado = localizar_imagem(alvo)
+                resultado = localizar_imagem(
+                    alvo,
+                    pasta_solicitada=pasta,
+                )
                 status = resultado["status"]
 
                 if status == "nao_encontrada":
-                    fala = (
-                        f"Não encontrei uma imagem chamada {alvo} "
-                        "em Downloads, Documentos, Área de Trabalho ou Imagens."
-                    )
+                    if pasta:
+                        fala = (
+                            f"Não encontrei uma imagem chamada {alvo} "
+                            f"na pasta {pasta}."
+                        )
+                    else:
+                        fala = (
+                            f"Não encontrei uma imagem chamada {alvo} "
+                            "em Downloads, Documentos, Área de Trabalho ou Imagens."
+                        )
 
                 elif status == "ambiguo":
                     todas_opcoes = resultado["opcoes"]
