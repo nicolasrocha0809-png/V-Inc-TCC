@@ -1,13 +1,21 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame, QComboBox, QPushButton
-from PySide6.QtCore import Qt, QProcess
-import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+import sys
+
+from PySide6.QtCore import QProcess, Qt
+from PySide6.QtGui import QFont
+from PySide6.QtWidgets import (
+    QComboBox,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QSizePolicy,
+    QVBoxLayout,
+    QWidget,
+)
+
 from config import settings
 from interface.audio_devices import listar_dispositivos, nomes_com_padrao
-
-from PySide6.QtWidgets import QHBoxLayout, QSizePolicy
-from PySide6.QtGui import QFont
 
 
 class InicioScreen(QWidget):

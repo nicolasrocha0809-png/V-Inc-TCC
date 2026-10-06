@@ -33,3 +33,6 @@ config.json
 *.bundle
 *.pyc
 .pytest_cache/
+
+# Artefatos locais removidos do repositório
+teste_saida.mp3
