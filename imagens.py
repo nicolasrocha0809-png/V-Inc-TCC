@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import json
 import os
 import re
@@ -73,7 +74,186 @@ MODELO_GEMINI_FALLBACK_PADRAO = "gemini-3.1-flash-lite"
 MODELO_DOTS_PADRAO = "dots-studio/dots-3-note-preview:free"
 MODELO_CLOUDFLARE_PADRAO = "@cf/google/gemma-4-26b-a4b-it"
 
+VERSAO_INDICE_IMAGENS = 1
+VERSAO_CACHE_DESCRICOES = 1
+
 _cache_imagens = None
+
+
+def obter_pasta_cache():
+    base_local = os.getenv("LOCALAPPDATA")
+
+    if base_local:
+        pasta = Path(base_local) / "V-Inc" / "cache"
+    else:
+        pasta = Path.home() / ".v-inc" / "cache"
+
+    pasta.mkdir(parents=True, exist_ok=True)
+    return pasta
+
+
+def caminho_cache(nome_arquivo):
+    return obter_pasta_cache() / nome_arquivo
+
+
+def carregar_json_cache(caminho, padrao):
+    if not caminho.exists():
+        return padrao
+
+    try:
+        with caminho.open("r", encoding="utf-8") as arquivo:
+            return json.load(arquivo)
+    except (OSError, json.JSONDecodeError, TypeError, ValueError) as erro:
+        print(f"Cache ignorado por estar inválido ({caminho.name}): {erro}")
+        return padrao
+
+
+def salvar_json_cache(caminho, dados):
+    caminho.parent.mkdir(parents=True, exist_ok=True)
+    temporario = caminho.with_name(caminho.name + ".tmp")
+
+    try:
+        with temporario.open("w", encoding="utf-8") as arquivo:
+            json.dump(
+                dados,
+                arquivo,
+                ensure_ascii=False,
+                indent=2,
+            )
+        os.replace(temporario, caminho)
+    except OSError as erro:
+        print(f"Não foi possível salvar o cache {caminho.name}: {erro}")
+        try:
+            temporario.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
+def carregar_indice_imagens():
+    caminho = caminho_cache("indice_imagens.json")
+    dados = carregar_json_cache(caminho, None)
+
+    if not isinstance(dados, dict):
+        return None
+
+    if dados.get("versao") != VERSAO_INDICE_IMAGENS:
+        return None
+
+    itens = dados.get("imagens")
+    if not isinstance(itens, list):
+        return None
+
+    imagens = []
+    caminhos_adicionados = set()
+
+    for item in itens:
+        if not isinstance(item, dict):
+            continue
+
+        caminho_texto = item.get("caminho")
+        if not caminho_texto:
+            continue
+
+        caminho_imagem = Path(caminho_texto)
+
+        if (
+            not caminho_imagem.exists()
+            or caminho_imagem.suffix.lower() not in EXTENSOES_IMAGEM
+        ):
+            continue
+
+        chave = str(caminho_imagem).casefold()
+        if chave in caminhos_adicionados:
+            continue
+
+        imagens.append(caminho_imagem)
+        caminhos_adicionados.add(chave)
+
+    return imagens
+
+
+def salvar_indice_imagens(imagens):
+    registros = []
+
+    for caminho_imagem in imagens:
+        try:
+            estatisticas = caminho_imagem.stat()
+        except OSError:
+            continue
+
+        registros.append({
+            "caminho": str(caminho_imagem),
+            "tamanho": estatisticas.st_size,
+            "mtime_ns": estatisticas.st_mtime_ns,
+        })
+
+    salvar_json_cache(
+        caminho_cache("indice_imagens.json"),
+        {
+            "versao": VERSAO_INDICE_IMAGENS,
+            "imagens": registros,
+        },
+    )
+
+
+def hash_imagem(imagem_bytes):
+    return hashlib.sha256(imagem_bytes).hexdigest()
+
+
+def buscar_descricao_cache(chave_imagem):
+    dados = carregar_json_cache(
+        caminho_cache("descricoes.json"),
+        {
+            "versao": VERSAO_CACHE_DESCRICOES,
+            "descricoes": {},
+        },
+    )
+
+    if not isinstance(dados, dict):
+        return None
+
+    if dados.get("versao") != VERSAO_CACHE_DESCRICOES:
+        return None
+
+    descricoes = dados.get("descricoes")
+    if not isinstance(descricoes, dict):
+        return None
+
+    descricao = descricoes.get(chave_imagem)
+
+    if isinstance(descricao, str) and descricao.strip():
+        return descricao.strip()
+
+    return None
+
+
+def salvar_descricao_cache(chave_imagem, descricao):
+    caminho = caminho_cache("descricoes.json")
+    dados = carregar_json_cache(
+        caminho,
+        {
+            "versao": VERSAO_CACHE_DESCRICOES,
+            "descricoes": {},
+        },
+    )
+
+    if (
+        not isinstance(dados, dict)
+        or dados.get("versao") != VERSAO_CACHE_DESCRICOES
+        or not isinstance(dados.get("descricoes"), dict)
+    ):
+        dados = {
+            "versao": VERSAO_CACHE_DESCRICOES,
+            "descricoes": {},
+        }
+
+    dados["descricoes"][chave_imagem] = descricao.strip()
+    salvar_json_cache(caminho, dados)
+
+
+def finalizar_descricao(chave_imagem, descricao):
+    salvar_descricao_cache(chave_imagem, descricao)
+    return descricao
 
 
 def normalizar_nome(nome):
@@ -159,6 +339,17 @@ def encontrar_imagens(forcar_atualizacao=False):
     if _cache_imagens is not None and not forcar_atualizacao:
         return _cache_imagens.copy()
 
+    if not forcar_atualizacao:
+        indice_persistente = carregar_indice_imagens()
+
+        if indice_persistente:
+            _cache_imagens = indice_persistente
+            print(
+                f"Índice persistente carregado com "
+                f"{len(_cache_imagens)} imagem(ns)."
+            )
+            return _cache_imagens.copy()
+
     imagens = []
     caminhos_adicionados = set()
 
@@ -172,6 +363,7 @@ def encontrar_imagens(forcar_atualizacao=False):
                 for diretorio in diretorios
                 if diretorio.casefold() not in PASTAS_TECNICAS
             ]
+
             for arquivo in arquivos:
                 caminho = Path(raiz) / arquivo
 
@@ -187,9 +379,14 @@ def encontrar_imagens(forcar_atualizacao=False):
                 caminhos_adicionados.add(caminho_normalizado)
 
     _cache_imagens = imagens
+    salvar_indice_imagens(imagens)
+
+    print(
+        f"Índice de imagens atualizado com "
+        f"{len(_cache_imagens)} imagem(ns)."
+    )
 
     return imagens.copy()
-
 
 def caminho_corresponde_pasta(caminho, pasta_solicitada):
     if not pasta_solicitada:
@@ -375,13 +572,24 @@ def gerar_descricao_gemini(cliente, modelo, imagem_bytes, mime_type):
         ),
     )
 
+    candidatos = getattr(resposta, "candidates", None) or []
+
+    if candidatos:
+        motivo = getattr(candidatos[0], "finish_reason", None)
+        motivo_texto = getattr(motivo, "name", str(motivo)).upper()
+
+        if "MAX_TOKENS" in motivo_texto:
+            raise RuntimeError(
+                f"O modelo {modelo} atingiu o limite de tokens "
+                "antes de concluir a descrição."
+            )
+
     descricao = resposta.text.strip() if resposta.text else ""
 
     if not descricao:
         raise RuntimeError(f"O modelo {modelo} não retornou uma descrição.")
 
     return descricao
-
 
 def criar_data_url(imagem_bytes, mime_type):
     imagem_base64 = base64.b64encode(imagem_bytes).decode("utf-8")
@@ -547,6 +755,14 @@ def descrever_imagem(caminho_imagem):
         raise ValueError("Formato de imagem não suportado.")
 
     imagem_bytes = caminho.read_bytes()
+    chave_imagem = hash_imagem(imagem_bytes)
+
+    descricao_cache = buscar_descricao_cache(chave_imagem)
+
+    if descricao_cache:
+        print("Descrição encontrada no cache persistente.")
+        return descricao_cache
+
     erros = []
 
     chave_gemini = os.getenv("GEMINI_API_KEY")
@@ -569,14 +785,17 @@ def descrever_imagem(caminho_imagem):
                 mime_type,
             )
             print(f"Descrição gerada com Gemini ({modelo_principal}).")
-            return descricao
+            return finalizar_descricao(chave_imagem, descricao)
 
         except Exception as erro:
             erros.append(f"Gemini {modelo_principal}: {erro}")
             print(f"Falha no Gemini ({modelo_principal}): {erro}")
 
             if eh_erro_temporario(erro):
-                print("Erro temporário no Gemini. Tentando novamente em 2 segundos...")
+                print(
+                    "Erro temporário no Gemini. "
+                    "Tentando novamente em 2 segundos..."
+                )
                 time.sleep(2)
 
                 try:
@@ -590,7 +809,7 @@ def descrever_imagem(caminho_imagem):
                         f"Descrição gerada com Gemini ({modelo_principal}) "
                         "na segunda tentativa."
                     )
-                    return descricao
+                    return finalizar_descricao(chave_imagem, descricao)
 
                 except Exception as erro_retry:
                     erros.append(
@@ -612,7 +831,7 @@ def descrever_imagem(caminho_imagem):
                     mime_type,
                 )
                 print(f"Descrição gerada com Gemini ({modelo_fallback}).")
-                return descricao
+                return finalizar_descricao(chave_imagem, descricao)
 
             except Exception as erro:
                 erros.append(f"Gemini {modelo_fallback}: {erro}")
@@ -627,7 +846,7 @@ def descrever_imagem(caminho_imagem):
     try:
         descricao = gerar_descricao_dots(imagem_bytes, mime_type)
         print("Descrição gerada com Dots pelo OpenRouter.")
-        return descricao
+        return finalizar_descricao(chave_imagem, descricao)
 
     except Exception as erro:
         erros.append(f"Dots/OpenRouter: {erro}")
@@ -638,7 +857,7 @@ def descrever_imagem(caminho_imagem):
     try:
         descricao = gerar_descricao_cloudflare(imagem_bytes, mime_type)
         print("Descrição gerada com Gemma pela Cloudflare Workers AI.")
-        return descricao
+        return finalizar_descricao(chave_imagem, descricao)
 
     except Exception as erro:
         erros.append(f"Gemma/Cloudflare: {erro}")
