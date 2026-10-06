@@ -823,6 +823,13 @@ def resolver_soletracao(texto_falado, dicionario):
 
     return dicionario, nome_escolhido
 
+
+def notificar_status_imagem(mensagem):
+    print(f"V.INC: {mensagem}")
+    tocar_sinal("processando")
+    falar(mensagem)
+
+
 print("Iniciando o V-Inc...")
 tocar_sinal("iniciar")
 falar(
@@ -1110,7 +1117,7 @@ while True:
                             falar(aviso_analise)
 
                             try:
-                                fala = descrever_imagem(caminho_escolhido, notificar=falar)
+                                fala = descrever_imagem(caminho_escolhido, notificar=notificar_status_imagem)
 
                             except Exception as erro:
                                 print(f"Erro ao descrever imagem: {erro}")
@@ -1131,7 +1138,7 @@ while True:
                     falar(aviso_analise)
 
                     try:
-                        fala = descrever_imagem(caminho, notificar=falar)
+                        fala = descrever_imagem(caminho, notificar=notificar_status_imagem)
 
                     except Exception as erro:
                         print(f"Erro ao descrever imagem: {erro}")

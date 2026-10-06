@@ -197,42 +197,54 @@ def _similaridade(a, b):
 
 def _frase_wake_valida(texto):
     normalizado = _normalizar_texto(texto)
-    compacto = normalizado.replace(" ", "")
+    palavras = normalizado.split()
 
-    alvo = "olavinc"
+    if not palavras:
+        return False
 
-    score_alvo = _similaridade(
-        compacto,
-        alvo,
-    )
-
-    falsos_alvos = (
+    # O ONNX já funciona como primeiro filtro. Nesta etapa, o Whisper só
+    # precisa confirmar que "V-Inc" apareceu em algum ponto da transcrição.
+    variantes_vinc = {
         "vinc",
-        "vincvinc",
         "ving",
-        "vingue",
+        "vink",
         "vinque",
-        "pinc",
-        "inc",
-    )
+    }
 
-    score_falso = max(
-        _similaridade(
-            compacto,
-            falso,
-        )
-        for falso in falsos_alvos
-    )
+    for inicio in range(len(palavras)):
+        for tamanho in (1, 2, 3):
+            fim = inicio + tamanho
+
+            if fim > len(palavras):
+                break
+
+            candidato = "".join(palavras[inicio:fim])
+
+            if candidato in variantes_vinc:
+                print(
+                    f'Wake confirmada por presença de V-Inc em: "{normalizado}"'
+                )
+                return True
+
+            if 4 <= len(candidato) <= 6:
+                score_vinc = _similaridade(candidato, "vinc")
+
+                if score_vinc >= 0.78:
+                    print(
+                        "Wake confirmada por trecho semelhante a V-Inc "
+                        f"(score = {score_vinc:.2f}): \"{candidato}\""
+                    )
+                    return True
+
+    compacto = normalizado.replace(" ", "")
+    score_frase = _similaridade(compacto, "olavinc")
 
     print(
-        f"Similaridade wake: {score_alvo:.2f} | "
-        f"falso: {score_falso:.2f}"
+        f"Wake não confirmada. Melhor leitura: \"{normalizado}\" | "
+        f"similaridade da frase = {score_frase:.2f}"
     )
 
-    return (
-        score_alvo >= 0.72
-        and score_alvo >= score_falso + 0.08
-    )
+    return score_frase >= 0.72
 
 
 def _audio_para_wav(audio_int16):

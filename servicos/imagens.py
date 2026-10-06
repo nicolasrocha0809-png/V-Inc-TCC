@@ -45,6 +45,16 @@ PASTAS_TECNICAS = {
     "__pycache__",
 }
 
+GRUPOS_ALIASES_PASTAS = (
+    {"documentos", "documents", "meus documentos", "my documents"},
+    {"imagens", "pictures", "fotos", "photos", "minhas imagens", "my pictures"},
+    {"area de trabalho", "desktop"},
+    {"downloads", "download"},
+)
+
+TIMEOUT_GEMINI_MS = 20_000
+TIMEOUT_FALLBACK_HTTP = 25
+
 PROMPT_DESCRICAO = """
 Você é um recurso de acessibilidade visual.
 
@@ -402,10 +412,22 @@ def caminho_corresponde_pasta(caminho, pasta_solicitada):
     if not pasta_normalizada:
         return True
 
-    return any(
-        normalizar_nome(parte) == pasta_normalizada
+    aliases = {pasta_normalizada}
+
+    for grupo in GRUPOS_ALIASES_PASTAS:
+        grupo_normalizado = {normalizar_nome(nome) for nome in grupo}
+
+        if pasta_normalizada in grupo_normalizado:
+            aliases.update(grupo_normalizado)
+            break
+
+    partes_caminho = {
+        normalizar_nome(parte)
         for parte in caminho.parent.parts
-    )
+        if normalizar_nome(parte)
+    }
+
+    return bool(partes_caminho.intersection(aliases))
 
 
 def buscar_imagens(nome_solicitado, forcar_atualizacao=False, pasta_solicitada=None):
@@ -550,6 +572,20 @@ def eh_erro_temporario(erro):
     return any(indicador in texto for indicador in indicadores)
 
 
+def eh_timeout_rede(erro):
+    texto = f"{type(erro).__name__}: {erro}".upper()
+
+    return any(
+        indicador in texto
+        for indicador in (
+            "TIMEOUT",
+            "TIMED OUT",
+            "READTIMEOUT",
+            "CONNECTTIMEOUT",
+        )
+    )
+
+
 def gerar_descricao_gemini(cliente, modelo, imagem_bytes, mime_type):
     resposta = cliente.models.generate_content(
         model=modelo,
@@ -596,7 +632,7 @@ def criar_data_url(imagem_bytes, mime_type):
     return f"data:{mime_type};base64,{imagem_base64}"
 
 
-def requisicao_json(url, corpo, headers, nome_servico, timeout=45):
+def requisicao_json(url, corpo, headers, nome_servico, timeout=TIMEOUT_FALLBACK_HTTP):
     requisicao = urllib.request.Request(
         url,
         data=json.dumps(corpo).encode("utf-8"),
@@ -744,6 +780,8 @@ def descrever_imagem(caminho_imagem, notificar=None):
     caminho = Path(caminho_imagem)
 
     def avisar(mensagem):
+        print(f"Status da descrição: {mensagem}")
+
         if notificar is None:
             return
 
@@ -782,7 +820,12 @@ def descrever_imagem(caminho_imagem, notificar=None):
     )
 
     if chave_gemini:
-        cliente = genai.Client(api_key=chave_gemini)
+        cliente = genai.Client(
+            api_key=chave_gemini,
+            http_options=types.HttpOptions(
+                timeout=TIMEOUT_GEMINI_MS,
+            ),
+        )
 
         print(f"Tentando descrição com Gemini ({modelo_principal})...")
 
@@ -800,7 +843,7 @@ def descrever_imagem(caminho_imagem, notificar=None):
             erros.append(f"Gemini {modelo_principal}: {erro}")
             print(f"Falha no Gemini ({modelo_principal}): {erro}")
 
-            if eh_erro_temporario(erro):
+            if eh_erro_temporario(erro) and not eh_timeout_rede(erro):
                 avisar(
                     "O serviço principal de descrição está ocupado. "
                     "Vou tentar novamente."
