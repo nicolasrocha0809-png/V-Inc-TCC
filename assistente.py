@@ -12,10 +12,10 @@ from dotenv import load_dotenv
 
 from supabase import create_client
 from config import settings  
-from teste_cerebro import pensar
-from teste_voz import ouvir, falar
-from aplicativos import abrir_aplicativo
-from imagens import localizar_imagem, descrever_imagem
+from servicos.cerebro import pensar
+from servicos.voz import ouvir, falar
+from servicos.aplicativos import abrir_aplicativo
+from servicos.imagens import localizar_imagem, descrever_imagem
 import webbrowser
 
 load_dotenv()
