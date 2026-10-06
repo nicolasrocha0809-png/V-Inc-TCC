@@ -223,6 +223,14 @@ class InicioScreen(QWidget):
 
         if "encerrando" in texto:
             self.lbl_ouvindo.setText("Assistente parado")
+        elif "wake word confirmada" in texto:
+            self.lbl_ouvindo.setText("Ativado — aguarde o sinal")
+        elif "candidato de wake word detectado" in texto:
+            self.lbl_ouvindo.setText("Verificando ativação")
+        elif "wake word rejeitada" in texto:
+            self.lbl_ouvindo.setText('Diga "Olá V-Inc"')
+        elif "aguardando wake word" in texto:
+            self.lbl_ouvindo.setText('Diga "Olá V-Inc"')
         elif "calibrando o microfone" in texto:
             self.lbl_ouvindo.setText("Preparando o microfone")
         elif "pode falar agora" in texto:

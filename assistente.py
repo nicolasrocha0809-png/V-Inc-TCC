@@ -1,3 +1,4 @@
+import sys
 import ast
 from datetime import datetime
 import json
@@ -5,6 +6,17 @@ import os
 import operator
 import re
 import unicodedata
+
+sys.stdout.reconfigure(
+    encoding="utf-8",
+    errors="replace",
+)
+
+sys.stderr.reconfigure(
+    encoding="utf-8",
+    errors="replace",
+)
+
 from urllib.parse import quote_plus, urlencode
 from urllib.request import urlopen
 
@@ -14,9 +26,11 @@ from supabase import create_client
 from config import settings  
 from servicos.cerebro import pensar
 from servicos.voz import ouvir, falar, tocar_sinal
+from servicos.wakeword import aguardar_wakeword
 from servicos.aplicativos import abrir_aplicativo
 from servicos.imagens import localizar_imagem, descrever_imagem
 import webbrowser
+
 
 load_dotenv()
 
@@ -812,12 +826,13 @@ def resolver_soletracao(texto_falado, dicionario):
 print("Iniciando o V-Inc...")
 tocar_sinal("iniciar")
 falar(
-    "V.INC iniciado. Enquanto a palavra de ativação ainda não está disponível, "
-    "fale sempre depois do sinal sonoro. Eu aviso quando estiver pronto para ouvir."
+    'V.INC iniciado. Para me ativar, diga "Olá V-Inc". '
+    "Depois do sinal sonoro, fale o seu comando."
 )
 
 while True:
-    try:    
+    try:
+        aguardar_wakeword()
         texto_falado = ouvir()
 
         if not texto_falado:

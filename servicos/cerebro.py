@@ -161,7 +161,9 @@ def pensar(texto_falado, historico=None):
     resposta = cliente.chat.completions.create(
         model="openai/gpt-oss-20b",
         messages=mensagens,
-        response_format={"type": "json_object"}
+        response_format={"type": "json_object"},
+        reasoning_effort="low",
+        max_completion_tokens=512,
     )
 
     # 2. Pega o texto puro da resposta
