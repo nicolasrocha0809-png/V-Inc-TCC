@@ -69,13 +69,16 @@ Use null quando um campo não se aplicar. Nunca omita as chaves.
 - Exemplo com pasta: "descreva a imagem montanhas que está na pasta imagens" deve usar "alvo": "montanhas" e "pasta": "imagens".
 
 7. Regras para "pesquisar_video":
-- Use esta ação para pedidos de buscar, assistir ou procurar vídeos ou lives.
-- Se o usuário não especificar onde quer buscar, peça confirmação em "texto_resposta".
+- Use esta ação para pedidos de buscar, assistir, procurar ou abrir vídeos, lives, canais ou perfis de criadores.
 - As plataformas aceitas são YouTube, Twitch, Kick, Instagram, TikTok e Facebook. Quando o usuário mencionar uma delas, coloque no campo "site" somente o nome da plataforma ou seu domínio, por exemplo "twitch.tv". Interprete variações de reconhecimento de voz como "Kik" ou "Kique" como Kick.
 - Nunca troque uma plataforma explicitamente informada pelo usuário por Google.
-- Para pedidos como "último vídeo do X" ou "vídeo mais recente do canal Y", "vídeo mais famoso do canal Z" coloque no campo "alvo" a frase completa, incluindo o nome do canal.
-- Quando o usuário disser "canal", "perfil" ou "streamer" seguido de um nome, mantenha essa expressão e o nome no campo "alvo" para permitir a abertura direta do canal ou perfil. Em frases como "lives do Gaules no Kick", mantenha "do Gaules no Kick" no alvo.
-- Quando o usuário soletrar um nome usando letras separadas por hífen ou vírgula, preserve a soletração no campo "alvo" junto do nome falado. Exemplo: "streamer Pichone, P-I-X-O-N-E" deve manter tanto "Pichone" quanto "P-I-X-O-N-E" para que o programa possa comparar os dois.
+- Se o usuário mencionar "canal" ou "youtuber" em um pedido de vídeo e não informar plataforma, assuma YouTube automaticamente e use "site": "YouTube", sem pedir confirmação.
+- Para pedidos genéricos de vídeos sem plataforma e sem referência a canal ou youtuber, peça confirmação em "texto_resposta".
+- Para "último vídeo", "vídeo mais recente", "última live", "live mais recente", "vídeo mais visto", "vídeo mais famoso" ou "vídeo mais popular" de um canal, mantenha no campo "alvo" a frase completa com o nome do canal. Não simplifique para palavras como "mais famoso".
+- Para pedidos de abrir diretamente um canal ou youtuber, mantenha "canal NOME" ou "youtuber NOME" no campo "alvo".
+- Para buscas dentro de um canal, como "procure Y no canal X" ou "abra o vídeo X do canal Y", preserve tanto o assunto procurado quanto a expressão completa com o canal no campo "alvo".
+- Preserve nomes de canal com mais de uma palavra. Exemplo: "canal abc def" deve manter "abc def", não apenas "abc".
+- Quando o usuário soletrar um nome usando letras separadas por hífen ou vírgula, preserve a soletração no campo "alvo" junto do nome falado. Exemplo: "youtuber Digo, D-I-G-G-O" deve manter tanto "Digo" quanto "D-I-G-G-O" para que o programa possa comparar os dois.
 - Não use esta ação para perguntas simples, receitas ou explicações gerais.
 
 8. Regras para "responder":
