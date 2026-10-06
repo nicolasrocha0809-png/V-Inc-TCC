@@ -1,7 +1,12 @@
+import base64
+import json
 import os
 import re
-import winreg
+import time
 import unicodedata
+import urllib.error
+import urllib.request
+import winreg
 from difflib import get_close_matches
 from pathlib import Path
 
@@ -39,7 +44,37 @@ PASTAS_TECNICAS = {
     "__pycache__",
 }
 
+PROMPT_DESCRICAO = """
+Você é um recurso de acessibilidade visual.
+
+Descreva esta imagem em português do Brasil, usando texto natural
+e adequado para ser lido em voz alta.
+
+Comece com um resumo de uma frase. Depois, normalmente em três a seis
+frases, descreva os objetos, pessoas, ações, posições, cores e detalhes
+visualmente importantes.
+
+Leia todo texto visível que conseguir identificar.
+Se houver gráfico, tabela ou diagrama, explique suas informações principais.
+
+Se reconhecer um personagem, objeto ou referência cultural com boa confiança,
+você pode citar o nome. Se não tiver certeza, descreva a aparência ou diga que
+se parece com determinado elemento. Não afirme nomes específicos quando houver dúvida.
+
+Não invente identidades, intenções ou detalhes incertos.
+Quando algo não estiver claro, informe a incerteza.
+Não seja excessivamente breve nem produza uma descrição longa sem necessidade.
+Escreva exclusivamente em português do Brasil.
+Não misture palavras ou expressões de outros idiomas na resposta.
+Não use Markdown, tópicos ou símbolos de formatação.
+""".strip()
+
+MODELO_GEMINI_FALLBACK_PADRAO = "gemini-3.1-flash-lite"
+MODELO_DOTS_PADRAO = "dots-studio/dots-3-note-preview:free"
+MODELO_CLOUDFLARE_PADRAO = "@cf/google/gemma-4-26b-a4b-it"
+
 _cache_imagens = None
+
 
 def normalizar_nome(nome):
     nome = unicodedata.normalize("NFKD", nome)
@@ -297,6 +332,206 @@ def localizar_imagem(nome_solicitado, pasta_solicitada=None):
     }
 
 
+def eh_erro_temporario(erro):
+    texto = f"{type(erro).__name__}: {erro}".upper()
+
+    indicadores = (
+        "429",
+        "500",
+        "502",
+        "503",
+        "504",
+        "UNAVAILABLE",
+        "RESOURCE_EXHAUSTED",
+        "TOO MANY REQUESTS",
+        "TIMEOUT",
+        "TIMED OUT",
+        "TEMPORAR",
+        "HIGH DEMAND",
+    )
+
+    return any(indicador in texto for indicador in indicadores)
+
+
+def gerar_descricao_gemini(cliente, modelo, imagem_bytes, mime_type):
+    resposta = cliente.models.generate_content(
+        model=modelo,
+        contents=[
+            PROMPT_DESCRICAO,
+            types.Part.from_bytes(
+                data=imagem_bytes,
+                mime_type=mime_type,
+            ),
+        ],
+        config=types.GenerateContentConfig(
+            temperature=0.2,
+            max_output_tokens=700,
+            thinking_config=types.ThinkingConfig(
+                thinking_level="minimal",
+            ),
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(
+                disable=True,
+            ),
+        ),
+    )
+
+    descricao = resposta.text.strip() if resposta.text else ""
+
+    if not descricao:
+        raise RuntimeError(f"O modelo {modelo} não retornou uma descrição.")
+
+    return descricao
+
+
+def criar_data_url(imagem_bytes, mime_type):
+    imagem_base64 = base64.b64encode(imagem_bytes).decode("utf-8")
+    return f"data:{mime_type};base64,{imagem_base64}"
+
+
+def requisicao_json(url, corpo, headers, nome_servico, timeout=45):
+    requisicao = urllib.request.Request(
+        url,
+        data=json.dumps(corpo).encode("utf-8"),
+        headers=headers,
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(requisicao, timeout=timeout) as resposta:
+            return json.loads(resposta.read().decode("utf-8"))
+
+    except urllib.error.HTTPError as erro:
+        corpo_erro = erro.read().decode("utf-8", errors="replace")
+        raise RuntimeError(
+            f"{nome_servico} retornou HTTP {erro.code}: {corpo_erro}"
+        ) from erro
+
+    except urllib.error.URLError as erro:
+        raise RuntimeError(
+            f"Não foi possível conectar ao {nome_servico}: {erro.reason}"
+        ) from erro
+
+
+def gerar_descricao_dots(imagem_bytes, mime_type):
+    chave_api = os.getenv("OPENROUTER_API_KEY")
+
+    if not chave_api:
+        raise RuntimeError("OPENROUTER_API_KEY não encontrada no arquivo .env.")
+
+    modelo = os.getenv("OPENROUTER_VISION_MODEL", MODELO_DOTS_PADRAO)
+    imagem_data_url = criar_data_url(imagem_bytes, mime_type)
+
+    dados = requisicao_json(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+            "model": modelo,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": PROMPT_DESCRICAO,
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": imagem_data_url,
+                            },
+                        },
+                    ],
+                }
+            ],
+            "temperature": 0.2,
+            "max_tokens": 700,
+            "reasoning": {
+                "effort": "none",
+            },
+        },
+        {
+            "Authorization": f"Bearer {chave_api}",
+            "Content-Type": "application/json",
+        },
+        "OpenRouter",
+    )
+
+    escolhas = dados.get("choices") or []
+
+    if not escolhas:
+        raise RuntimeError("O OpenRouter respondeu sem nenhuma opção de resposta.")
+
+    descricao = (escolhas[0].get("message") or {}).get("content")
+
+    if not descricao or not descricao.strip():
+        raise RuntimeError("O Dots respondeu, mas não retornou uma descrição.")
+
+    return descricao.strip()
+
+
+def gerar_descricao_cloudflare(imagem_bytes, mime_type):
+    account_id = os.getenv("CLOUDFLARE_ACCOUNT_ID")
+    auth_token = os.getenv("CLOUDFLARE_AUTH_TOKEN")
+
+    if not account_id or not auth_token:
+        raise RuntimeError(
+            "CLOUDFLARE_ACCOUNT_ID ou CLOUDFLARE_AUTH_TOKEN não encontrados no .env."
+        )
+
+    modelo = os.getenv("CLOUDFLARE_VISION_MODEL", MODELO_CLOUDFLARE_PADRAO)
+    imagem_data_url = criar_data_url(imagem_bytes, mime_type)
+
+    url = (
+        "https://api.cloudflare.com/client/v4/accounts/"
+        f"{account_id}/ai/v1/chat/completions"
+    )
+
+    dados = requisicao_json(
+        url,
+        {
+            "model": modelo,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": imagem_data_url,
+                            },
+                        },
+                        {
+                            "type": "text",
+                            "text": PROMPT_DESCRICAO,
+                        },
+                    ],
+                }
+            ],
+            "temperature": 0.2,
+            "max_completion_tokens": 700,
+            "chat_template_kwargs": {
+                "enable_thinking": False,
+            },
+        },
+        {
+            "Authorization": f"Bearer {auth_token}",
+            "Content-Type": "application/json",
+        },
+        "Cloudflare Workers AI",
+    )
+
+    escolhas = dados.get("choices") or []
+
+    if not escolhas:
+        raise RuntimeError("A Cloudflare respondeu sem nenhuma opção de resposta.")
+
+    descricao = (escolhas[0].get("message") or {}).get("content")
+
+    if not descricao or not descricao.strip():
+        raise RuntimeError("O Gemma da Cloudflare não retornou uma descrição.")
+
+    return descricao.strip()
+
+
 def descrever_imagem(caminho_imagem):
     caminho = Path(caminho_imagem)
 
@@ -311,59 +546,106 @@ def descrever_imagem(caminho_imagem):
     if not mime_type:
         raise ValueError("Formato de imagem não suportado.")
 
-    chave_api = os.getenv("GEMINI_API_KEY")
-
-    if not chave_api:
-        raise RuntimeError("GEMINI_API_KEY não encontrada no arquivo .env.")
-
-    modelo = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
-    cliente = genai.Client(api_key=chave_api)
-
-    prompt = """
-    Você é um recurso de acessibilidade visual.
-
-    Descreva esta imagem em português do Brasil, usando texto natural
-    e adequado para ser lido em voz alta.
-
-    Comece com um resumo de uma frase. Depois, normalmente em três a seis
-    frases, descreva os objetos, pessoas, ações, posições, cores e detalhes
-    visualmente importantes.
-
-    Leia todo texto visível que conseguir identificar.
-    Se houver gráfico, tabela ou diagrama, explique suas informações principais.
-
-    Não invente identidades, intenções ou detalhes incertos.
-    Quando algo não estiver claro, informe a incerteza.
-    Não seja excessivamente breve nem produza uma descrição longa sem necessidade.
-    Não use Markdown, tópicos ou símbolos de formatação.
-    """.strip()
-
     imagem_bytes = caminho.read_bytes()
+    erros = []
 
-    resposta = cliente.models.generate_content(
-        model=modelo,
-        contents=[
-            prompt,
-            types.Part.from_bytes(
-                data=imagem_bytes,
-                mime_type=mime_type,
-            ),
-        ],
-        config=types.GenerateContentConfig(
-            temperature=0.2,
-            max_output_tokens=500,
-            thinking_config=types.ThinkingConfig(
-                thinking_level="low",
-            ),
-            automatic_function_calling=types.AutomaticFunctionCallingConfig(
-                disable=True,
-            ),
-        ),
+    chave_gemini = os.getenv("GEMINI_API_KEY")
+    modelo_principal = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+    modelo_fallback = os.getenv(
+        "GEMINI_FALLBACK_MODEL",
+        MODELO_GEMINI_FALLBACK_PADRAO,
     )
 
-    descricao = resposta.text.strip() if resposta.text else ""
+    if chave_gemini:
+        cliente = genai.Client(api_key=chave_gemini)
 
-    if not descricao:
-        raise RuntimeError("O Gemini não retornou uma descrição.")
+        print(f"Tentando descrição com Gemini ({modelo_principal})...")
 
-    return descricao
+        try:
+            descricao = gerar_descricao_gemini(
+                cliente,
+                modelo_principal,
+                imagem_bytes,
+                mime_type,
+            )
+            print(f"Descrição gerada com Gemini ({modelo_principal}).")
+            return descricao
+
+        except Exception as erro:
+            erros.append(f"Gemini {modelo_principal}: {erro}")
+            print(f"Falha no Gemini ({modelo_principal}): {erro}")
+
+            if eh_erro_temporario(erro):
+                print("Erro temporário no Gemini. Tentando novamente em 2 segundos...")
+                time.sleep(2)
+
+                try:
+                    descricao = gerar_descricao_gemini(
+                        cliente,
+                        modelo_principal,
+                        imagem_bytes,
+                        mime_type,
+                    )
+                    print(
+                        f"Descrição gerada com Gemini ({modelo_principal}) "
+                        "na segunda tentativa."
+                    )
+                    return descricao
+
+                except Exception as erro_retry:
+                    erros.append(
+                        f"Gemini {modelo_principal} (retry): {erro_retry}"
+                    )
+                    print(
+                        f"Segunda tentativa do Gemini ({modelo_principal}) "
+                        f"falhou: {erro_retry}"
+                    )
+
+        if modelo_fallback != modelo_principal:
+            print(f"Tentando fallback Gemini ({modelo_fallback})...")
+
+            try:
+                descricao = gerar_descricao_gemini(
+                    cliente,
+                    modelo_fallback,
+                    imagem_bytes,
+                    mime_type,
+                )
+                print(f"Descrição gerada com Gemini ({modelo_fallback}).")
+                return descricao
+
+            except Exception as erro:
+                erros.append(f"Gemini {modelo_fallback}: {erro}")
+                print(f"Falha no Gemini ({modelo_fallback}): {erro}")
+
+    else:
+        erros.append("GEMINI_API_KEY ausente")
+        print("GEMINI_API_KEY não encontrada. Pulando os modelos Gemini.")
+
+    print("Tentando fallback gratuito pelo OpenRouter (Dots)...")
+
+    try:
+        descricao = gerar_descricao_dots(imagem_bytes, mime_type)
+        print("Descrição gerada com Dots pelo OpenRouter.")
+        return descricao
+
+    except Exception as erro:
+        erros.append(f"Dots/OpenRouter: {erro}")
+        print(f"Falha no Dots/OpenRouter: {erro}")
+
+    print("Tentando fallback pela Cloudflare Workers AI (Gemma)...")
+
+    try:
+        descricao = gerar_descricao_cloudflare(imagem_bytes, mime_type)
+        print("Descrição gerada com Gemma pela Cloudflare Workers AI.")
+        return descricao
+
+    except Exception as erro:
+        erros.append(f"Gemma/Cloudflare: {erro}")
+        print(f"Falha no Gemma/Cloudflare: {erro}")
+
+    resumo_erros = " | ".join(erros)
+    raise RuntimeError(
+        "Nenhum serviço conseguiu gerar a descrição da imagem. "
+        f"Detalhes: {resumo_erros}"
+    )
