@@ -28,3 +28,11 @@ data/
 settings.json
 config.json
 .v-inc/
+
+# Artefatos locais de desenvolvimento
+*.bundle
+*.pyc
+.pytest_cache/
+
+# Artefatos locais removidos do repositório
+teste_saida.mp3

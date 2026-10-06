@@ -1,9 +1,138 @@
 
 QWidget { background-color: #000000; color: #FFFF00; }
+QLabel { background-color: transparent; }
 
 #sidebar { background-color: #000000; border-right-color: #FFFF00; }
-#menu_btn { color: #FFFF00; }
-#menu_btn:hover { background-color: #FFFF00; color: #000000; }
+#marca_sidebar, #subtitulo_sidebar, #titulo_menu { color: #FFFF00; }
+#menu_btn, #ajuda_btn { background-color: #000000; color: #FFFF00; }
+#menu_btn:hover, #menu_btn:checked, #ajuda_btn:hover, #ajuda_btn:checked {
+    background-color: #FFFF00;
+    color: #000000;
+}
+#menu_btn:focus, #ajuda_btn:focus { border-color: #FFFFFF; }
+#divisor_sidebar { background-color: #FFFF00; }
+
+#pagina_comandos { background-color: #000000; }
+#rotulo_pagina, #titulo_pagina, #subtitulo_pagina,
+#titulo_card_comando, #descricao_card_comando, #exemplo_comando {
+    color: #FFFF00;
+}
+#card_comando { background-color: #000000; border-color: #FFFF00; }
+#icone_comando { background-color: #FFFF00; color: #000000; }
+
+#pagina_historico { background-color: #000000; }
+#ordem_historico,
+#botao_atualizar_historico,
+#botao_limpar_historico,
+#botao_excluir_historico {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+#ordem_historico:hover,
+#botao_atualizar_historico:hover,
+#botao_limpar_historico:hover,
+#botao_excluir_historico:hover {
+    background-color: #FFFF00;
+    color: #000000;
+}
+#botao_atualizar_historico:disabled { color: #D4D400; }
+#ordem_historico::down-arrow {
+    image: url(interface/assets/chevron_down_contraste.svg);
+}
+#resumo_historico, #data_historico,
+#comando_historico, #estado_historico { color: #FFFF00; }
+#conteudo_historico, #lista_historico,
+#item_historico {
+    background-color: #000000;
+    border-color: #FFFF00;
+}
+#lista_historico QScrollBar::handle:vertical { background-color: #FFFF00; }
+
+#pagina_configuracoes,
+#conteudo_configuracoes { background-color: #000000; }
+#card_configuracao {
+    background-color: #000000;
+    border-color: #FFFF00;
+}
+#titulo_card_configuracao, #descricao_card_configuracao,
+#label_configuracao, #valor_configuracao,
+#status_configuracoes { color: #FFFF00; }
+#scroll_configuracoes QScrollBar::handle:vertical {
+    background-color: #FFFF00;
+}
+#campo_configuracao {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+#campo_configuracao::down-arrow {
+    image: url(interface/assets/chevron_down_contraste.svg);
+}
+#campo_configuracao QAbstractItemView {
+    background-color: #000000;
+    color: #FFFF00;
+    selection-background-color: #FFFF00;
+    selection-color: #000000;
+    border: 1px solid #FFFF00;
+}
+#slider_configuracao::groove:horizontal { background-color: #FFFFFF; }
+#slider_configuracao::sub-page:horizontal { background-color: #FFFF00; }
+#slider_configuracao::handle:horizontal {
+    background-color: #FFFF00;
+    border-color: #000000;
+}
+#botao_secundario_configuracoes,
+#botao_salvar_configuracoes {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+#botao_secundario_configuracoes:hover,
+#botao_salvar_configuracoes:hover {
+    background-color: #FFFF00;
+    color: #000000;
+}
+
+#pagina_inicio, #conteudo_inicio { background-color: #000000; }
+#estado_assistente, #titulo_campo_audio { color: #FFFF00; }
+#botao_microfone {
+    background-color: #FFFF00;
+    color: #000000;
+    border-color: #FFFFFF;
+}
+#botao_microfone:hover { background-color: #FFFFFF; }
+#card_audio_inicio {
+    background-color: #000000;
+    border-color: #FFFF00;
+}
+#campo_audio_inicio {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+#campo_audio_inicio::down-arrow {
+    image: url(interface/assets/chevron_down_contraste.svg);
+}
+#campo_audio_inicio QAbstractItemView {
+    background-color: #000000;
+    color: #FFFF00;
+    selection-background-color: #FFFF00;
+    selection-color: #000000;
+    border: 1px solid #FFFF00;
+}
+#divisor_audio_inicio { background-color: #FFFF00; border: none; }
+#botao_iniciar_assistente,
+#botao_configuracoes_voz {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+#botao_iniciar_assistente:hover,
+#botao_configuracoes_voz:hover {
+    background-color: #FFFF00;
+    color: #000000;
+}
 
 #login_card { background-color: #000000; border-color: #FFFF00; }
 QLineEdit { background-color: #000000; color: #FFFF00; border-color: #FFFF00; }
@@ -13,3 +142,142 @@ QLineEdit { background-color: #000000; color: #FFFF00; border-color: #FFFF00; }
 
 #subtitulo_login { color: #FFFF00; }
 #logo_login { color: #FFFF00; }
+
+/* --- Central de ajuda --- */
+#pagina_ajuda,
+#conteudo_ajuda {
+    background-color: #000000;
+}
+
+#botao_atalho_ajuda,
+#botao_copiar_suporte {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+
+#botao_atalho_ajuda:hover,
+#botao_copiar_suporte:hover {
+    background-color: #FFFF00;
+    color: #000000;
+}
+
+#card_pergunta {
+    background-color: #000000;
+    border-color: #FFFF00;
+}
+
+#botao_pergunta {
+    background-color: #000000;
+    color: #FFFF00;
+}
+
+#botao_pergunta:hover,
+#botao_pergunta:checked {
+    background-color: #FFFF00;
+    color: #000000;
+}
+
+#resposta_pergunta,
+#titulo_suporte,
+#texto_suporte {
+    color: #FFFF00;
+}
+
+#card_suporte {
+    background-color: #000000;
+    border-color: #FFFF00;
+}
+
+#scroll_ajuda QScrollBar::handle:vertical {
+    background-color: #FFFF00;
+}
+
+/* --- Autenticação --- */
+#pagina_login,
+#login_scroll_area,
+#card_container,
+#painel_login,
+#cadastro_card,
+#container_secundario,
+#cabecalho_login {
+    background-color: #000000;
+}
+
+#painel_login,
+#cadastro_card,
+#container_secundario {
+    border-color: #FFFF00;
+}
+
+#titulo_login,
+#marca_cadastro,
+#subtitulo_login,
+#titulo_form_login,
+#titulo_tela,
+#descricao_form_login,
+#descricao_tela,
+#ajuda_input,
+#pagina_login #label_input {
+    color: #FFFF00;
+}
+
+#pagina_login QLineEdit,
+#campo_cadastro {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+    selection-background-color: #FFFF00;
+    selection-color: #000000;
+}
+
+#pagina_login QLineEdit:focus { border-color: #FFFFFF; }
+
+#pagina_login QToolButton {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+
+#pagina_login QToolButton:hover,
+#pagina_login #btn_entrar,
+#pagina_login #btn_secundario:hover {
+    background-color: #FFFF00;
+    color: #000000;
+    border-color: #FFFF00;
+}
+
+#pagina_login #btn_entrar:hover { background-color: #FFFFFF; }
+
+#pagina_login #btn_secundario {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+
+#pagina_login #btn_link,
+#pagina_login #btn_link:hover,
+#status_msg {
+    color: #FFFF00;
+}
+
+#login_scroll_area QScrollBar::handle:vertical { background-color: #FFFF00; }
+
+/* --- Carregamento --- */
+#pagina_loading,
+#card_loading {
+    background-color: #000000;
+}
+#card_loading { border-color: #FFFF00; }
+#titulo_loading,
+#subtitulo_loading,
+#status_loading,
+#modulos_loading,
+#percentual_loading {
+    color: #FFFF00;
+}
+#barra_loading {
+    background-color: #000000;
+    border-color: #FFFF00;
+}
+#barra_loading::chunk { background-color: #FFFF00; }

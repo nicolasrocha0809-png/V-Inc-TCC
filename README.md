@@ -1,26 +1,80 @@
-# 👁️ V-Inc: Assistente de Voz versão incial de teste
+# V.INC — Voz Inclusiva
 
-Este repositório contém a versão de desenvolvimento do assistente virtual V-Inc. Ele combina uma interface gráfica de segurança login simples com reconhecimento e síntese de voz para teste inicial
+O V.INC é um assistente de voz para Windows desenvolvido com foco em acessibilidade.
+O projeto combina interface gráfica, reconhecimento e síntese de voz, execução de
+comandos, pesquisa de vídeos, abertura de aplicativos e descrição de imagens.
 
-## Funcionalidades
-* **Tela de Acesso:** Interface construída em Pyside6 para autenticação prévia.
-* **Reconhecimento de Voz:** Transcrição de áudio usando a API Groq (modelo `whisper-large-v3`).
-* **Síntese de Voz:** Respostas geradas usando `edge_tts` (voz realista) com um sistema de segurança (fallback) para `pyttsx3` caso o computador fique offline.
-* **Funções:** Algumas funções foram desativadas para o propósito dessa versão inicial para o teste e reconhecimento da voz
+## Principais recursos
 
-## Como rodar o projeto localmente
+- Interface em PySide6 com temas claro, escuro e alto contraste.
+- Reconhecimento de voz usando Whisper pela API da Groq.
+- Síntese de voz com Edge TTS e fallback local com pyttsx3.
+- Abertura de aplicativos instalados e atalhos do Windows.
+- Pesquisa de vídeos, canais e lives, com integração à YouTube Data API.
+- Descrição de imagens com cadeia de fallback entre serviços de visão.
+- Cache persistente para índice e descrições de imagens.
+- Histórico de comandos integrado ao Supabase.
+- Preferências de áudio, tema, fonte e idioma.
 
-1. Faça o clone deste repositório.
-2. Crie um ambiente virtual e ative-o:
-   `python -m venv .venv`
-   `.\.venv\Scripts\Activate.ps1`
+## Estrutura do projeto
+
+```text
+V-Inc-TCC/
+├── main.py
+├── assistente.py
+├── config.py
+├── servicos/
+│   ├── cerebro.py
+│   ├── voz.py
+│   ├── aplicativos.py
+│   └── imagens.py
+├── interface/
+│   ├── telas/
+│   ├── estilos/
+│   ├── temas/
+│   └── assets/
+└── requirements.txt
+```
+
+## Como executar
+
+1. Clone o repositório.
+2. Crie e ative um ambiente virtual:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
 3. Instale as dependências:
-   `pip install -r requirements.txt`
-4. Crie um arquivo `.env` na raiz do projeto e configure as suas chaves e credenciais conforme o modelo abaixo:
-   ```env
-   CHAVE_GROQ=sua_chave_groq_aqui
-   YOUTUBE_API_KEY=sua_chave_youtube_api_aqui
-   SUPABASE_URL=sua_url_do_supabase_aqui
-   SUPABASE_KEY=sua_chave_anon_do_supabase_aqui
-   EMAIL_REMETENTE=seu_email_remetente_gmail_aqui
-   SENHA_REMETENTE=sua_senha_de_app_de_16_digitos_aqui
+
+```powershell
+pip install -r requirements.txt
+```
+
+4. Crie um arquivo `.env` na raiz e configure as credenciais usadas pelo projeto.
+
+```env
+CHAVE_GROQ=
+YOUTUBE_API_KEY=
+SUPABASE_URL=
+SUPABASE_KEY=
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-3.6-flash
+GEMINI_FALLBACK_MODEL=gemini-3.1-flash-lite
+OPENROUTER_API_KEY=
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_AUTH_TOKEN=
+```
+
+5. Inicie a interface:
+
+```powershell
+python .\main.py
+```
+
+Para executar diretamente o assistente de voz:
+
+```powershell
+python .\assistente.py
+```

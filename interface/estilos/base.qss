@@ -1,6 +1,350 @@
 /* --- Estrutura e Container --- */
 QWidget {
     background-color: transparent;
+    font-family: "Segoe UI";
+}
+
+#sidebar {
+    border-right-width: 1px;
+    border-right-style: solid;
+}
+
+#marca_sidebar {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+
+#subtitulo_sidebar {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+#titulo_menu {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+#menu_btn,
+#ajuda_btn {
+    min-height: 24px;
+    padding: 12px 14px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#menu_btn:focus,
+#ajuda_btn:focus {
+    border-width: 2px;
+    border-style: solid;
+}
+
+#divisor_sidebar {
+    border: none;
+}
+
+#scroll_pagina {
+    border: none;
+}
+
+#rotulo_pagina {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+#titulo_pagina {
+    font-size: 30px;
+    font-weight: 700;
+}
+
+#subtitulo_pagina {
+    font-size: 15px;
+}
+
+#card_comando {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 16px;
+}
+
+#icone_comando {
+    border-radius: 9px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+#titulo_card_comando {
+    font-size: 17px;
+    font-weight: 700;
+}
+
+#descricao_card_comando,
+#exemplo_comando {
+    font-size: 13px;
+}
+
+#exemplo_comando {
+    font-style: italic;
+}
+
+#ordem_historico,
+#botao_atualizar_historico,
+#botao_limpar_historico {
+    min-height: 20px;
+    padding: 9px 14px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 10px;
+}
+
+#ordem_historico {
+    min-width: 180px;
+    padding-right: 38px;
+}
+
+#ordem_historico::drop-down {
+    width: 36px;
+    border: none;
+    background-color: transparent;
+}
+
+#ordem_historico::down-arrow {
+    width: 12px;
+    height: 8px;
+}
+
+#resumo_historico {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#lista_historico {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 16px;
+    padding: 10px;
+    outline: none;
+}
+
+#lista_historico::item {
+    border: none;
+}
+
+#item_historico {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 12px;
+}
+
+#comando_historico {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+#data_historico,
+#estado_historico {
+    font-size: 13px;
+}
+
+#botao_excluir_historico {
+    min-width: 68px;
+    padding: 8px 12px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 9px;
+}
+
+#lista_historico QScrollBar:vertical {
+    width: 10px;
+    margin: 6px 2px;
+    border: none;
+    background: transparent;
+}
+
+#lista_historico QScrollBar::handle:vertical {
+    min-height: 36px;
+    border-radius: 4px;
+}
+
+#lista_historico QScrollBar::add-line:vertical,
+#lista_historico QScrollBar::sub-line:vertical {
+    height: 0;
+    border: none;
+    background: transparent;
+}
+
+#lista_historico QScrollBar::add-page:vertical,
+#lista_historico QScrollBar::sub-page:vertical {
+    background: transparent;
+}
+
+#card_configuracao {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 16px;
+}
+
+#grupo_configuracao {
+    background-color: transparent;
+    border: none;
+}
+
+#scroll_configuracoes {
+    border: none;
+}
+
+#titulo_card_configuracao {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+#descricao_card_configuracao {
+    font-size: 13px;
+}
+
+#label_configuracao {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#campo_configuracao {
+    padding: 8px 38px 8px 12px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 10px;
+}
+
+#campo_configuracao::drop-down {
+    width: 34px;
+    border: none;
+    background-color: transparent;
+}
+
+#campo_configuracao::down-arrow {
+    width: 12px;
+    height: 8px;
+}
+
+#valor_configuracao,
+#status_configuracoes {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#slider_configuracao {
+    min-height: 24px;
+    background-color: transparent;
+    border: none;
+}
+
+#slider_configuracao::groove:horizontal {
+    height: 6px;
+    border: none;
+    border-radius: 3px;
+}
+
+#slider_configuracao::sub-page:horizontal {
+    border-radius: 3px;
+}
+
+#slider_configuracao::handle:horizontal {
+    width: 18px;
+    height: 18px;
+    margin: -6px 0;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 9px;
+}
+
+#botao_secundario_configuracoes,
+#botao_salvar_configuracoes {
+    min-height: 20px;
+    padding: 10px 16px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 10px;
+}
+
+#scroll_configuracoes QScrollBar:vertical {
+    width: 10px;
+    margin: 6px 2px;
+    border: none;
+    background: transparent;
+}
+
+#scroll_configuracoes QScrollBar::handle:vertical {
+    min-height: 36px;
+    border-radius: 4px;
+}
+
+#scroll_configuracoes QScrollBar::add-line:vertical,
+#scroll_configuracoes QScrollBar::sub-line:vertical {
+    height: 0;
+    border: none;
+    background: transparent;
+}
+
+#scroll_configuracoes QScrollBar::add-page:vertical,
+#scroll_configuracoes QScrollBar::sub-page:vertical {
+    background: transparent;
+}
+
+#estado_assistente {
+    border: none;
+    margin-top: 6px;
+}
+
+#botao_microfone {
+    border-width: 4px;
+    border-style: solid;
+    border-radius: 90px;
+    font-size: 60px;
+}
+
+#card_audio_inicio {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 20px;
+}
+
+#titulo_campo_audio {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+#campo_audio_inicio {
+    padding: 8px 40px 8px 16px;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+#campo_audio_inicio::drop-down {
+    width: 34px;
+    border: none;
+    background-color: transparent;
+}
+
+#campo_audio_inicio::down-arrow {
+    width: 12px;
+    height: 8px;
+}
+
+#botao_iniciar_assistente,
+#botao_configuracoes_voz {
+    min-height: 20px;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
 }
 
 #login_card {
@@ -11,53 +355,53 @@ QWidget {
 
 /* --- Tipografia e Títulos (Forçando transparência) --- */
 QLabel {
-    background-color: transparent !important;
+    background-color: transparent;
     border: none;
 }
 
 #logo_login { 
     font-size: 50px; 
     margin-bottom: 10px; 
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 #titulo_login { 
     font-weight: bold; 
     margin-bottom: 5px; 
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 #subtitulo_login { 
     margin-bottom: 20px; 
     color: #94A3B8;
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 /* Título das telas secundárias (Cadastro, Recuperação, etc.) */
 #titulo_tela {
     font-weight: bold;
     margin-bottom: 15px;
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 #descricao_tela {
     color: #94A3B8;
     margin-bottom: 10px;
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 #label_input { 
     font-weight: 600; 
     margin-top: 10px; 
     margin-bottom: 5px; 
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 #ajuda_input {
     color: #94A3B8;
     margin-top: -4px;
     margin-bottom: 8px;
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 /* --- Campos de Entrada --- */
@@ -91,7 +435,83 @@ QPushButton {
 #status_msg {
     font-weight: bold;
     margin-top: 10px;
-    background-color: transparent !important;
+    background-color: transparent;
+}
+
+/* --- Central de ajuda --- */
+#scroll_ajuda {
+    border: none;
+}
+
+#card_pergunta {
+    border: 1px solid;
+    border-radius: 12px;
+}
+
+#botao_pergunta {
+    min-height: 22px;
+    padding: 15px 18px;
+    border: none;
+    border-radius: 11px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#resposta_pergunta {
+    padding: 12px 18px 16px 18px;
+    background-color: transparent;
+    font-size: 13px;
+}
+
+#botao_atalho_ajuda,
+#botao_copiar_suporte {
+    min-height: 20px;
+    padding: 10px 16px;
+    border: 1px solid;
+    border-radius: 10px;
+}
+
+#card_suporte {
+    border: 1px solid;
+    border-radius: 14px;
+}
+
+#card_suporte QLabel {
+    background-color: transparent;
+}
+
+#titulo_suporte {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+#texto_suporte {
+    font-size: 13px;
+}
+
+#scroll_ajuda QScrollBar:vertical {
+    width: 10px;
+    margin: 6px 2px;
+    border: none;
+    background-color: transparent;
+}
+
+#scroll_ajuda QScrollBar::handle:vertical {
+    min-height: 36px;
+    border-radius: 4px;
+}
+
+#scroll_ajuda QScrollBar::add-line:vertical,
+#scroll_ajuda QScrollBar::sub-line:vertical {
+    height: 0;
+    border: none;
+    background-color: transparent;
+}
+
+#scroll_ajuda QScrollBar::add-page:vertical,
+#scroll_ajuda QScrollBar::sub-page:vertical {
+    background-color: transparent;
 }
 
 QToolButton {
@@ -106,4 +526,205 @@ QToolButton:hover {
 
 QToolButton:focus {
     border: 2px solid #FACC15;
+}
+
+/* --- Autenticação --- */
+#login_scroll_area {
+    border: none;
+}
+
+#painel_login,
+#cadastro_card,
+#container_secundario {
+    border: 1px solid;
+    border-radius: 20px;
+}
+
+#painel_marca_login,
+#cabecalho_login,
+#painel_form_login,
+#linha_senha,
+#cadastro_card QWidget,
+#container_secundario QWidget {
+    background-color: transparent;
+}
+
+#divisor_login {
+    border: none;
+}
+
+#titulo_login {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 3px;
+}
+
+#logo_login {
+    margin: 6px 0;
+}
+
+#subtitulo_login {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+#titulo_form_login {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+#descricao_form_login {
+    margin-bottom: 4px;
+    font-size: 13px;
+}
+
+#marca_cadastro {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 3px;
+}
+
+#titulo_tela {
+    margin-bottom: 6px;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+#descricao_tela {
+    margin-bottom: 10px;
+    font-size: 13px;
+}
+
+#pagina_login #label_input {
+    margin-top: 3px;
+    margin-bottom: 1px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#pagina_login QLineEdit {
+    min-height: 18px;
+    padding: 8px 12px;
+    border: 2px solid;
+    border-radius: 11px;
+}
+
+#linha_senha QLineEdit {
+    margin: 0;
+}
+
+#pagina_login QToolButton {
+    border: 1px solid;
+    border-radius: 10px;
+}
+
+#pagina_login #btn_entrar,
+#pagina_login #btn_secundario {
+    min-height: 18px;
+    padding: 8px 14px;
+    border: 2px solid;
+    border-radius: 11px;
+}
+
+#pagina_login #btn_link {
+    padding: 5px 10px;
+    border: none;
+    background-color: transparent;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+#campo_cadastro {
+    border: 2px solid;
+    border-radius: 12px;
+}
+
+#pagina_login #campo_cadastro_input {
+    min-height: 22px;
+    padding: 8px;
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+}
+
+#ajuda_input {
+    font-size: 12px;
+}
+
+#status_msg {
+    min-height: 18px;
+    font-size: 12px;
+}
+
+#login_scroll_area QScrollBar:vertical {
+    width: 10px;
+    margin: 6px 2px;
+    border: none;
+    background-color: transparent;
+}
+
+#login_scroll_area QScrollBar::handle:vertical {
+    min-height: 36px;
+    border-radius: 4px;
+}
+
+#login_scroll_area QScrollBar::add-line:vertical,
+#login_scroll_area QScrollBar::sub-line:vertical {
+    height: 0;
+    border: none;
+    background-color: transparent;
+}
+
+#login_scroll_area QScrollBar::add-page:vertical,
+#login_scroll_area QScrollBar::sub-page:vertical {
+    background-color: transparent;
+}
+
+/* --- Carregamento --- */
+#card_loading {
+    border: 1px solid;
+    border-radius: 20px;
+}
+
+#card_loading QLabel,
+#info_loading {
+    background-color: transparent;
+}
+
+#titulo_loading {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 3px;
+}
+
+#subtitulo_loading {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+#status_loading {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+#barra_loading {
+    min-height: 12px;
+    max-height: 12px;
+    border: 2px solid;
+    border-radius: 7px;
+    text-align: center;
+}
+
+#barra_loading::chunk {
+    border-radius: 5px;
+}
+
+#modulos_loading,
+#percentual_loading {
+    font-size: 12px;
+    font-weight: 600;
 }

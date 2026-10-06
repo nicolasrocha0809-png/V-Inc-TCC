@@ -1,59 +1,170 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame, QGridLayout
 from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QFrame,
+    QGridLayout,
+    QLabel,
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
+)
+
+
+COMANDOS = (
+    (
+        "APP",
+        "Abrir aplicativos",
+        "Abra programas instalados no computador usando apenas a voz.",
+        'Exemplo: "Abra o Visual Studio Code."',
+    ),
+    (
+        "IMG",
+        "Descrever imagens",
+        "Localize uma imagem nas pastas do usuário e ouça sua descrição.",
+        'Exemplo: "Descreva a imagem montanhas."',
+    ),
+    (
+        "WEB",
+        "Pesquisar na internet",
+        "Abra sites ou faça pesquisas sobre o assunto solicitado.",
+        'Exemplo: "Pesquise quem foi Ada Lovelace."',
+    ),
+    (
+        "PLAY",
+        "Encontrar vídeos e lives",
+        "Pesquise conteúdo no YouTube, Twitch, Kick e outras plataformas.",
+        'Exemplo: "Procure lives de programação na Twitch."',
+    ),
+    (
+        "123",
+        "Fazer cálculos",
+        "Resolva operações matemáticas simples sem abrir outro aplicativo.",
+        'Exemplo: "Quanto é vinte e cinco vezes oito?"',
+    ),
+    (
+        "VOZ",
+        "Respostas rápidas",
+        "Converse com o assistente e receba respostas curtas em voz alta.",
+        'Exemplo: "O que significa acessibilidade?"',
+    ),
+)
+
 
 class ComandosScreen(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setStyleSheet("background-color: #0F172A;")
-        self.criar_tela()
+        self.cards = []
+        self.quantidade_colunas = 0
+        self._criar_tela()
 
-    def criar_tela(self):
-        layout_principal = QVBoxLayout(self)
-        layout_principal.setContentsMargins(40, 30, 40, 40)
+    def _criar_tela(self):
+        layout_externo = QVBoxLayout(self)
+        layout_externo.setContentsMargins(0, 0, 0, 0)
 
-    
-        lbl_titulo = QLabel("Guia de Comandos")
-        lbl_titulo.setStyleSheet("font-size: 28px; font-weight: bold; color: #60A5FA;")
-        layout_principal.addWidget(lbl_titulo)
+        scroll = QScrollArea()
+        scroll.setObjectName("scroll_pagina")
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        layout_externo.addWidget(scroll)
 
-        lbl_sub = QLabel("Diga o nome do assistente seguido por um destes comandos.")
-        lbl_sub.setStyleSheet("font-size: 14px; color: #94A3B8; margin-bottom: 20px;")
-        layout_principal.addWidget(lbl_sub)
+        conteudo = QWidget()
+        conteudo.setObjectName("pagina_comandos")
+        scroll.setWidget(conteudo)
 
-        grid = QGridLayout()
-        layout_principal.addLayout(grid)
+        self.layout_principal = QVBoxLayout(conteudo)
+        self.layout_principal.setContentsMargins(40, 32, 40, 40)
+        self.layout_principal.setSpacing(10)
 
-        self.criar_card(grid, "▶️", "Abra o YouTube", "Inicia o aplicativo de vídeo e prepara para pesquisa por voz.", 0, 0)
-        self.criar_card(grid, "📖", "Leia o texto", "Ativa o leitor de tela para o documento ou site atualmente aberto.", 0, 1)
-        self.criar_card(grid, "🔍", "Pesquise sobre", "Faz uma pesquisa no Google sobre o assunto dito.", 1, 0)
-        self.criar_card(grid, "⏰", "Defina alarme", "Configura um alarme ou lembrete no horário desejado.", 1, 1)
+        lbl_secao = QLabel("RECURSOS DE VOZ")
+        lbl_secao.setObjectName("rotulo_pagina")
+        self.layout_principal.addWidget(lbl_secao)
 
-    def criar_card(self, grid, emoji, titulo, descricao, row, column):
+        lbl_titulo = QLabel("O que você pode pedir")
+        lbl_titulo.setObjectName("titulo_pagina")
+        self.layout_principal.addWidget(lbl_titulo)
+
+        lbl_subtitulo = QLabel(
+            "Fale naturalmente. O V.INC identifica a ação e pede confirmação "
+            "quando precisar de mais detalhes."
+        )
+        lbl_subtitulo.setObjectName("subtitulo_pagina")
+        lbl_subtitulo.setWordWrap(True)
+        self.layout_principal.addWidget(lbl_subtitulo)
+        self.layout_principal.addSpacing(16)
+
+        self.grid = QGridLayout()
+        self.grid.setHorizontalSpacing(16)
+        self.grid.setVerticalSpacing(16)
+        self.layout_principal.addLayout(self.grid)
+        self.layout_principal.addStretch()
+
+        for sigla, titulo, descricao, exemplo in COMANDOS:
+            self.cards.append(
+                self._criar_card(sigla, titulo, descricao, exemplo)
+            )
+
+        self._organizar_cards(3)
+
+    def _criar_card(self, sigla, titulo, descricao, exemplo):
         card = QFrame()
-        card.setStyleSheet("""
-            QFrame { 
-                background-color: #1E2937; 
-                border-radius: 16px; 
-                border: 2px solid #334155; 
-            }
-        """)
-        
-        layout_card = QVBoxLayout(card)
-        
-        lbl_emoji = QLabel(emoji)
-        lbl_emoji.setStyleSheet("font-size: 40px;")
-        lbl_emoji.setAlignment(Qt.AlignCenter)
-        layout_card.addWidget(lbl_emoji)
+        card.setObjectName("card_comando")
+        card.setAccessibleName(titulo)
+        card.setAccessibleDescription(f"{descricao} {exemplo}")
+        card.setMinimumHeight(176)
+
+        layout = QVBoxLayout(card)
+        layout.setContentsMargins(20, 18, 20, 18)
+        layout.setSpacing(8)
+
+        lbl_sigla = QLabel(sigla)
+        lbl_sigla.setObjectName("icone_comando")
+        lbl_sigla.setAlignment(Qt.AlignCenter)
+        lbl_sigla.setFixedSize(54, 34)
+        layout.addWidget(lbl_sigla, alignment=Qt.AlignLeft)
 
         lbl_titulo = QLabel(titulo)
-        lbl_titulo.setStyleSheet("font-size: 17px; font-weight: bold; color: #E0F2FE;")
-        lbl_titulo.setAlignment(Qt.AlignCenter)
-        layout_card.addWidget(lbl_titulo)
+        lbl_titulo.setObjectName("titulo_card_comando")
+        layout.addWidget(lbl_titulo)
 
-        lbl_desc = QLabel(descricao)
-        lbl_desc.setStyleSheet("font-size: 13px; color: #94A3B8;")
-        lbl_desc.setWordWrap(True)
-        lbl_desc.setAlignment(Qt.AlignCenter)
-        layout_card.addWidget(lbl_desc)
+        lbl_descricao = QLabel(descricao)
+        lbl_descricao.setObjectName("descricao_card_comando")
+        lbl_descricao.setWordWrap(True)
+        layout.addWidget(lbl_descricao)
 
-        grid.addWidget(card, row, column)
+        layout.addStretch()
+
+        lbl_exemplo = QLabel(exemplo)
+        lbl_exemplo.setObjectName("exemplo_comando")
+        lbl_exemplo.setWordWrap(True)
+        layout.addWidget(lbl_exemplo)
+
+        return card
+
+    def _organizar_cards(self, colunas):
+        if colunas == self.quantidade_colunas:
+            return
+
+        while self.grid.count():
+            self.grid.takeAt(0)
+
+        for indice, card in enumerate(self.cards):
+            linha, coluna = divmod(indice, colunas)
+            self.grid.addWidget(card, linha, coluna)
+
+        for coluna in range(colunas):
+            self.grid.setColumnStretch(coluna, 1)
+
+        self.quantidade_colunas = colunas
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        largura = event.size().width()
+
+        if largura >= 850:
+            colunas = 3
+        elif largura >= 560:
+            colunas = 2
+        else:
+            colunas = 1
+
+        self._organizar_cards(colunas)

@@ -5,8 +5,10 @@ edge-tts
 pygame
 groq
 python-dotenv
-openwakeword
+livekit-wakeword
 PySide6
 supabase
 bcrypt
 pydub
+pycaw
+google-genai
