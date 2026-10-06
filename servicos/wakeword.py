@@ -202,6 +202,18 @@ def _frase_wake_valida(texto):
     if not palavras:
         return False
 
+    compacto = normalizado.replace(" ", "")
+
+    variacoes_frase = {
+        "olavinc",
+        "olavemaqui",
+        "olavimaqui",
+    }
+
+    if any(variacao in compacto for variacao in variacoes_frase):
+        print(f'Wake confirmada por variação reconhecida: "{normalizado}"')
+        return True
+
     # O ONNX já funciona como primeiro filtro. Nesta etapa, o Whisper só
     # precisa confirmar que "V-Inc" apareceu em algum ponto da transcrição.
     variantes_vinc = {
