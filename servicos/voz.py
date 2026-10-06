@@ -1,5 +1,10 @@
 import asyncio
+import io
+import math
 import os
+import struct
+import wave
+import winsound
 from dotenv import load_dotenv
 import edge_tts as e_tts
 from groq import Groq
@@ -20,7 +25,96 @@ if not CHAVE_API:
 cliente = Groq(api_key=CHAVE_API)
 rec = sr.Recognizer()
 
-# Mapeamento de vozes e códigos de idioma para o Whisper e Edge-TTS
+SINAIS_SONOROS = {
+    "iniciar": ((660, 90), (880, 130)),
+    "pronto": ((1040, 150),),
+    "processando": ((720, 90),),
+    "erro": ((360, 130), (300, 170)),
+    "encerrar": ((700, 100), (500, 150)),
+}
+
+
+def _gerar_tom_wav(frequencia, duracao_ms, volume=0.35, taxa=44100):
+    quantidade = max(1, int(taxa * (duracao_ms / 1000)))
+    fade = max(1, int(taxa * 0.008))
+    frames = bytearray()
+
+    for indice in range(quantidade):
+        envelope = 1.0
+
+        if indice < fade:
+            envelope = indice / fade
+        elif indice >= quantidade - fade:
+            envelope = max(0.0, (quantidade - indice - 1) / fade)
+
+        amostra = int(
+            32767
+            * volume
+            * envelope
+            * math.sin(2 * math.pi * frequencia * indice / taxa)
+        )
+        frames.extend(struct.pack("<h", amostra))
+
+    buffer = io.BytesIO()
+
+    with wave.open(buffer, "wb") as arquivo:
+        arquivo.setnchannels(1)
+        arquivo.setsampwidth(2)
+        arquivo.setframerate(taxa)
+        arquivo.writeframes(bytes(frames))
+
+    buffer.seek(0)
+    return buffer
+
+
+def tocar_sinal(tipo="pronto"):
+    padrao = SINAIS_SONOROS.get(tipo, SINAIS_SONOROS["pronto"])
+    mixer_iniciado_aqui = False
+
+    try:
+        if not pg.mixer.get_init():
+            iniciar_mixer_configurado()
+            mixer_iniciado_aqui = True
+
+        valor_volume = int(settings.get("audio", "volume") or 80)
+        volume = max(0.0, min(1.0, valor_volume / 100.0))
+
+        for frequencia, duracao in padrao:
+            arquivo_tom = _gerar_tom_wav(
+                frequencia,
+                duracao,
+                volume=0.42,
+            )
+            som = pg.mixer.Sound(file=arquivo_tom)
+            som.set_volume(volume)
+            canal = som.play()
+
+            while canal and canal.get_busy():
+                pg.time.Clock().tick(100)
+
+            pg.time.wait(30)
+
+        return True
+
+    except Exception as erro:
+        print(f"Não foi possível reproduzir o sinal pelo áudio configurado: {erro}")
+
+        try:
+            for frequencia, duracao in padrao:
+                winsound.Beep(frequencia, duracao)
+            return True
+        except Exception as erro_fallback:
+            print(f"Fallback do sinal sonoro também falhou: {erro_fallback}")
+            return False
+
+    finally:
+        if mixer_iniciado_aqui:
+            try:
+                pg.mixer.quit()
+            except Exception:
+                pass
+
+
 MAPA_IDIOMAS = {
     "pt_BR": {"whisper": "pt", "voz": "pt-BR-FranciscaNeural"},
     "en_US": {"whisper": "en", "voz": "en-US-AriaNeural"},
@@ -67,13 +161,14 @@ def iniciar_mixer_configurado():
         print(f"Não foi possível selecionar a saída: {erro}")
         pg.mixer.init()
 
+
 def falar(texto):
+    caminho_audio = "resposta.mp3"
+
     try:
-        # Pega a voz dinâmica com base no idioma salvo nas configurações
         cfg_idioma = obter_configuracao_idioma()
         voz_atual = cfg_idioma["voz"]
 
-        # 1. Lê a velocidade configurada no slider (0 a 100)
         valor_velocidade = int(settings.get("audio", "velocidade") or 80)
         taxa_calculada = int((valor_velocidade - 50) * 1.5)
         rate_str = (
@@ -82,35 +177,51 @@ def falar(texto):
             else f"{taxa_calculada}%"
         )
 
-        # 2. Lê o volume configurado no slider (0 a 100) e converte para a escala do Pygame (0.0 a 1.0)
         valor_volume_slider = int(settings.get("audio", "volume") or 80)
         volume_decimal = max(0.0, min(1.0, valor_volume_slider / 100.0))
 
         async def gerar_audio():
             comunicacao = e_tts.Communicate(texto, voz_atual, rate=rate_str)
-            await comunicacao.save("resposta.mp3")
+            await comunicacao.save(caminho_audio)
 
         asyncio.run(gerar_audio())
-        
-        # 3. Reproduz o áudio aplicando o volume de forma independente
+
         iniciar_mixer_configurado()
-        pg.mixer.music.load("resposta.mp3")
+        pg.mixer.music.load(caminho_audio)
         pg.mixer.music.set_volume(volume_decimal)
         pg.mixer.music.play()
-        
+
         while pg.mixer.music.get_busy():
             pg.time.Clock().tick(10)
-            
-        pg.mixer.music.unload()
-        pg.mixer.quit()
-        if os.path.exists("resposta.mp3"):
-            os.remove("resposta.mp3")
 
     except Exception as erro:
         print(f"Erro no edge-tts: {erro}")
-        motor = pyttsx3.init()
-        motor.say(texto)
-        motor.runAndWait()
+
+        try:
+            motor = pyttsx3.init()
+            motor.say(texto)
+            motor.runAndWait()
+        except Exception as erro_local:
+            print(f"Não foi possível reproduzir a fala: {erro_local}")
+
+    finally:
+        try:
+            if pg.mixer.get_init():
+                pg.mixer.music.stop()
+                try:
+                    pg.mixer.music.unload()
+                except Exception:
+                    pass
+                pg.mixer.quit()
+        except Exception:
+            pass
+
+        try:
+            if os.path.exists(caminho_audio):
+                os.remove(caminho_audio)
+        except OSError:
+            pass
+
 
 def ouvir():
     try:
@@ -129,11 +240,15 @@ def ouvir():
                 "Pode falar agora..."
             )
 
+            tocar_sinal("pronto")
+
             audio = rec.listen(
                 mic,
                 timeout=10,
                 phrase_time_limit=10,
             )
+
+        tocar_sinal("processando")
 
         with open("meu_audio.wav", "wb") as arquivo_wav:
             arquivo_wav.write(audio.get_wav_data())
@@ -152,11 +267,24 @@ def ouvir():
         return texto
 
     except sr.WaitTimeoutError:
-        print("Nenhuma fala foi detectada dentro do tempo limite.")
+        print(
+            "Nenhuma fala foi detectada. "
+            "O assistente continuará ouvindo e emitirá outro sinal quando estiver pronto."
+        )
         return ""
 
     except Exception as erro:
         print(f"Não foi possível escutar: {erro}")
+        tocar_sinal("erro")
+
+        try:
+            falar(
+                "Não consegui ouvir seu comando desta vez. "
+                "Vou tentar novamente."
+            )
+        except Exception:
+            pass
+
         return ""
 
 def iniciar_assistente():

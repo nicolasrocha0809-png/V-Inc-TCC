@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from supabase import create_client
 from config import settings  
 from servicos.cerebro import pensar
-from servicos.voz import ouvir, falar
+from servicos.voz import ouvir, falar, tocar_sinal
 from servicos.aplicativos import abrir_aplicativo
 from servicos.imagens import localizar_imagem, descrever_imagem
 import webbrowser
@@ -810,7 +810,11 @@ def resolver_soletracao(texto_falado, dicionario):
     return dicionario, nome_escolhido
 
 print("Iniciando o V-Inc...")
-falar("Iniciando o V-Inc...")
+tocar_sinal("iniciar")
+falar(
+    "V.INC iniciado. Enquanto a palavra de ativação ainda não está disponível, "
+    "fale sempre depois do sinal sonoro. Eu aviso quando estiver pronto para ouvir."
+)
 
 while True:
     try:    
@@ -822,6 +826,7 @@ while True:
         if eh_comando_encerramento(texto_falado):
             print("Encerrando o Sistema...")
             falar("Encerrando o Sistema...")
+            tocar_sinal("encerrar")
             break
            
         
@@ -880,6 +885,9 @@ while True:
 
             elif dicionario_resposta['acao'] == "abrir_app":
                 alvo = dicionario_resposta['alvo']
+                aviso_app = f"Vou procurar o aplicativo {alvo}. Só um momento."
+                print(aviso_app)
+                falar(aviso_app)
                 resultado = abrir_aplicativo(alvo)
                 status = resultado["status"]
 
@@ -1087,7 +1095,7 @@ while True:
                             falar(aviso_analise)
 
                             try:
-                                fala = descrever_imagem(caminho_escolhido)
+                                fala = descrever_imagem(caminho_escolhido, notificar=falar)
 
                             except Exception as erro:
                                 print(f"Erro ao descrever imagem: {erro}")
@@ -1108,7 +1116,7 @@ while True:
                     falar(aviso_analise)
 
                     try:
-                        fala = descrever_imagem(caminho)
+                        fala = descrever_imagem(caminho, notificar=falar)
 
                     except Exception as erro:
                         print(f"Erro ao descrever imagem: {erro}")
@@ -1141,6 +1149,20 @@ while True:
                 assunto_normalizado = normalizar_texto(assunto)
                 tipo_busca = inferir_tipo_busca_video(assunto)
                 canal = extrair_identificador_canal(assunto)
+
+                if identificador == "youtube" and tipo_busca == "mais_visto":
+                    aviso_youtube = (
+                        "Vou verificar os vídeos públicos do canal para encontrar "
+                        "o mais visto. Em canais grandes, isso pode levar alguns segundos."
+                    )
+                    print(aviso_youtube)
+                    falar(aviso_youtube)
+                elif identificador == "youtube" and tipo_busca in {
+                    "ultimo_video", "ultima_live", "abrir_canal", "buscar_no_canal"
+                }:
+                    aviso_youtube = "Vou consultar o YouTube. Só um momento."
+                    print(aviso_youtube)
+                    falar(aviso_youtube)
 
                 if identificador == "youtube":
                     if tipo_busca == "ultimo_video":
@@ -1244,7 +1266,18 @@ while True:
                 print(f'O resultado de {equacao} é: {resultado_br}')
                 falar(f'O resultado é {resultado_br}')
 
+    except SystemExit:
+        break
+
+    except KeyboardInterrupt:
+        print("\nEncerrando o V.INC com segurança...")
+        tocar_sinal("encerrar")
+        break
+
     except Exception as e:
-        # Se algo der errado cai aqui no except
         print(f"Ops, tive um probleminha: {e}")
-        falar("Houve um erro no processamento, mas ainda estou aqui.")
+        tocar_sinal("erro")
+        falar(
+            "Não consegui concluir esse pedido. Você pode tentar novamente "
+            "ou falar de outra forma. Continuo ouvindo."
+        )

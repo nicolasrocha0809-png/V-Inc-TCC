@@ -740,8 +740,17 @@ def gerar_descricao_cloudflare(imagem_bytes, mime_type):
     return descricao.strip()
 
 
-def descrever_imagem(caminho_imagem):
+def descrever_imagem(caminho_imagem, notificar=None):
     caminho = Path(caminho_imagem)
+
+    def avisar(mensagem):
+        if notificar is None:
+            return
+
+        try:
+            notificar(mensagem)
+        except Exception as erro_aviso:
+            print(f"Não foi possível reproduzir o aviso de status: {erro_aviso}")
 
     if not caminho.exists():
         raise FileNotFoundError("A imagem selecionada não existe.")
@@ -792,6 +801,10 @@ def descrever_imagem(caminho_imagem):
             print(f"Falha no Gemini ({modelo_principal}): {erro}")
 
             if eh_erro_temporario(erro):
+                avisar(
+                    "O serviço principal de descrição está ocupado. "
+                    "Vou tentar novamente."
+                )
                 print(
                     "Erro temporário no Gemini. "
                     "Tentando novamente em 2 segundos..."
@@ -821,6 +834,10 @@ def descrever_imagem(caminho_imagem):
                     )
 
         if modelo_fallback != modelo_principal:
+            avisar(
+                "O serviço principal ainda não respondeu. "
+                "Vou tentar uma opção alternativa."
+            )
             print(f"Tentando fallback Gemini ({modelo_fallback})...")
 
             try:
@@ -840,7 +857,15 @@ def descrever_imagem(caminho_imagem):
     else:
         erros.append("GEMINI_API_KEY ausente")
         print("GEMINI_API_KEY não encontrada. Pulando os modelos Gemini.")
+        avisar(
+            "O serviço principal de descrição não está disponível. "
+            "Vou usar uma alternativa."
+        )
 
+    avisar(
+        "A primeira opção não conseguiu concluir a descrição. "
+        "Vou tentar outro serviço."
+    )
     print("Tentando fallback gratuito pelo OpenRouter (Dots)...")
 
     try:
@@ -852,6 +877,10 @@ def descrever_imagem(caminho_imagem):
         erros.append(f"Dots/OpenRouter: {erro}")
         print(f"Falha no Dots/OpenRouter: {erro}")
 
+    avisar(
+        "Ainda não consegui gerar a descrição. "
+        "Vou fazer uma última tentativa."
+    )
     print("Tentando fallback pela Cloudflare Workers AI (Gemma)...")
 
     try:

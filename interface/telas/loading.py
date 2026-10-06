@@ -58,6 +58,7 @@ class LoadingScreen(QWidget):
         self.lbl_status.setObjectName("status_loading")
         self.lbl_status.setAlignment(Qt.AlignCenter)
         self.lbl_status.setWordWrap(True)
+        self.lbl_status.setAccessibleName("Status da inicialização")
 
         self.progress_bar = QProgressBar(self.card)
         self.progress_bar.setObjectName("barra_loading")
@@ -65,6 +66,9 @@ class LoadingScreen(QWidget):
         self.progress_bar.setValue(0)
         self.progress_bar.setTextVisible(False)
         self.progress_bar.setAccessibleName("Progresso de inicialização")
+        self.progress_bar.setAccessibleDescription(
+            "Indica o andamento da preparação do V.INC."
+        )
 
         info = QWidget(self.card)
         info.setObjectName("info_loading")
@@ -75,6 +79,7 @@ class LoadingScreen(QWidget):
         self.lbl_modulos = QLabel("Iniciando módulos…", info)
         self.lbl_modulos.setObjectName("modulos_loading")
         self.lbl_modulos.setWordWrap(True)
+        self.lbl_modulos.setAccessibleName("Etapa da inicialização")
         self.lbl_modulos.setSizePolicy(
             QSizePolicy.Expanding,
             QSizePolicy.Preferred,
@@ -83,6 +88,7 @@ class LoadingScreen(QWidget):
         self.lbl_percentual = QLabel("0%", info)
         self.lbl_percentual.setObjectName("percentual_loading")
         self.lbl_percentual.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.lbl_percentual.setAccessibleName("Percentual concluído")
 
         layout_info.addWidget(self.lbl_modulos, 1)
         layout_info.addWidget(self.lbl_percentual)
@@ -135,7 +141,7 @@ class LoadingScreen(QWidget):
         elif self.progresso == 100:
             self.timer.stop()
             self.lbl_modulos.setText("Inicialização concluída")
-            self.lbl_status.setText("Tudo pronto!")
+            self.lbl_status.setText("Tudo pronto! Você já pode usar o V.INC.")
 
             if self.callback_final:
                 QTimer.singleShot(500, self.callback_final)

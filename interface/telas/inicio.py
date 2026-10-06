@@ -51,6 +51,10 @@ class InicioScreen(QWidget):
         self.lbl_ouvindo = QLabel("Assistente parado")
         self.lbl_ouvindo.setObjectName("estado_assistente")
         self.lbl_ouvindo.setAlignment(Qt.AlignCenter)
+        self.lbl_ouvindo.setAccessibleName("Estado do assistente")
+        self.lbl_ouvindo.setAccessibleDescription(
+            "Informa se o assistente está iniciando, ouvindo, processando ou parado."
+        )
         fonte_titulo = QFont()
         fonte_titulo.setPointSize(24)
         fonte_titulo.setBold(True)
@@ -186,7 +190,7 @@ class InicioScreen(QWidget):
         self.processo_assistente.start(sys.executable, ["-u", caminho_assistente])
 
         self.assistente_ativo = True
-        self.lbl_ouvindo.setText("Assistente ativado — ouvindo")
+        self.lbl_ouvindo.setText("Iniciando assistente…")
         self._atualizar_estado_controles()
 
     def parar_assistente(self):
@@ -202,22 +206,41 @@ class InicioScreen(QWidget):
         else:
             self._assistente_finalizado()
 
+
     def _ler_saida_assistente(self):
         if not self.processo_assistente:
             return
+
         saida = bytes(self.processo_assistente.readAllStandardOutput()).decode(
             "utf-8", errors="replace"
         ).strip()
+
         if not saida:
             return
+
         print(saida)
-        ultima_linha = saida.splitlines()[-1]
-        if "Ouvindo" in ultima_linha or "ouvindo" in ultima_linha:
-            self.lbl_ouvindo.setText("Assistente ativado — ouvindo")
-        elif "Processando" in ultima_linha:
-            self.lbl_ouvindo.setText("Assistente ativado — processando")
-        elif "Encerrando" in ultima_linha:
+        texto = saida.lower()
+
+        if "encerrando" in texto:
             self.lbl_ouvindo.setText("Assistente parado")
+        elif "calibrando o microfone" in texto:
+            self.lbl_ouvindo.setText("Preparando o microfone")
+        elif "pode falar agora" in texto:
+            self.lbl_ouvindo.setText("Pode falar agora")
+        elif (
+            "processando áudio" in texto
+            or "analisando os uploads" in texto
+            or "procurando a imagem" in texto
+            or "tentando descrição" in texto
+            or "vou consultar" in texto
+        ):
+            self.lbl_ouvindo.setText("Processando seu pedido")
+        elif "nenhuma fala foi detectada" in texto:
+            self.lbl_ouvindo.setText("Aguardando um novo comando")
+        elif "não foi possível escutar" in texto:
+            self.lbl_ouvindo.setText("Problema ao ouvir — tentando novamente")
+        elif "assistente ativo e ouvindo" in texto:
+            self.lbl_ouvindo.setText("Pode falar agora")
 
     def _erro_assistente(self, erro):
         if erro == QProcess.FailedToStart:
@@ -228,7 +251,7 @@ class InicioScreen(QWidget):
         if not hasattr(self, "btn_parar"):
             return
         if self.assistente_ativo:
-            self.btn_parar.setText("Parar de Ouvir")
+            self.btn_parar.setText("Parar Assistente")
             self.btn_parar.setAccessibleName("Parar de ouvir")
             self.btn_parar.setAccessibleDescription("Interrompe o assistente de voz ativo.")
             self.btn_parar.setEnabled(True)

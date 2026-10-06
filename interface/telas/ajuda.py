@@ -22,9 +22,17 @@ FAQS = (
     (
         "Como iniciar e usar os comandos de voz?",
         "Na tela Início, confirme o microfone e a saída de áudio e selecione "
-        "Iniciar Assistente. Aguarde a calibração em silêncio e fale depois "
-        "do aviso de que o assistente está ouvindo. Você pode consultar "
-        "exemplos completos na tela Comandos.",
+        "Iniciar Assistente. Aguarde a calibração em silêncio. Enquanto a "
+        "ativação por palavra-chave ainda não estiver disponível, fale sempre "
+        "depois do sinal sonoro que indica que o V.INC está pronto para ouvir. "
+        "Você pode consultar exemplos completos na tela Comandos.",
+    ),
+    (
+        "O que significam os sinais sonoros?",
+        "Ao iniciar o assistente, dois tons confirmam que ele foi ativado. "
+        "Um sinal curto e mais agudo indica que você já pode falar. Depois "
+        "da sua fala, outro sinal curto indica que o comando foi recebido "
+        "e está sendo processado. Tons mais graves indicam erro ou encerramento.",
     ),
     (
         "O que fazer se o microfone não for reconhecido?",
