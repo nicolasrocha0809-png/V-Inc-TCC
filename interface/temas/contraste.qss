@@ -23,6 +23,32 @@ QLabel { background-color: transparent; }
 #menu_btn:focus, #ajuda_btn:focus { border-color: #FFFFFF; }
 #divisor_sidebar { background-color: #FFFF00; }
 
+#pagina_terminal,
+#card_terminal,
+#saida_terminal {
+    background-color: #000000;
+}
+#card_terminal,
+#saida_terminal { border-color: #FFFF00; }
+#estado_terminal,
+#saida_terminal { color: #FFFF00; }
+#saida_terminal {
+    selection-background-color: #FFFF00;
+    selection-color: #000000;
+}
+#botao_copiar_terminal,
+#botao_limpar_terminal {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+#botao_copiar_terminal:hover,
+#botao_limpar_terminal:hover {
+    background-color: #FFFF00;
+    color: #000000;
+}
+#saida_terminal QScrollBar::handle:vertical { background-color: #FFFF00; }
+
 #pagina_conta,
 #conteudo_conta,
 #card_conta,
@@ -366,6 +392,8 @@ QLineEdit { background-color: #000000; color: #FFFF00; border-color: #FFFF00; }
 #botao_configuracoes_voz:focus,
 #botao_atalho_ajuda:focus,
 #botao_copiar_suporte:focus,
+#botao_copiar_terminal:focus,
+#botao_limpar_terminal:focus,
 #botao_pergunta:focus {
     background-color: #FFFFFF;
     color: #000000;
@@ -390,4 +418,8 @@ QSlider#slider_configuracao[focoTeclado="true"]::handle:horizontal {
     background-color: #FFFFFF;
     color: #000000;
     border: 3px solid #FFFF00;
+}
+
+#saida_terminal:focus {
+    border: 3px solid #FFFFFF;
 }

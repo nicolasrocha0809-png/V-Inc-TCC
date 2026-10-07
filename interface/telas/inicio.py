@@ -6,6 +6,7 @@ from PySide6.QtCore import (
     QEasingCurve,
     QProcess,
     QPropertyAnimation,
+    Signal,
     Qt,
 )
 from PySide6.QtGui import QFont
@@ -67,6 +68,8 @@ class ScrollInicio(QScrollArea):
 
 
 class InicioScreen(QWidget):
+    saida_assistente = Signal(str)
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -274,7 +277,7 @@ class InicioScreen(QWidget):
         if not saida:
             return
 
-        print(saida)
+        self.saida_assistente.emit(saida)
         texto = saida.lower()
 
         if "encerrando" in texto:

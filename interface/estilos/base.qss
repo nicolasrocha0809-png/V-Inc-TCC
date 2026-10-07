@@ -140,6 +140,61 @@ QWidget {
     border: none;
 }
 
+/* --- Terminal do assistente --- */
+#card_terminal {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 16px;
+}
+
+#estado_terminal {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+#saida_terminal {
+    min-height: 260px;
+    padding: 16px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 12px;
+    font-family: "Cascadia Mono", "Consolas", monospace;
+    font-size: 13px;
+}
+
+#botao_copiar_terminal,
+#botao_limpar_terminal {
+    min-height: 20px;
+    padding: 9px 14px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 9px;
+}
+
+#saida_terminal QScrollBar:vertical {
+    width: 10px;
+    margin: 6px 2px;
+    border: none;
+    background-color: transparent;
+}
+
+#saida_terminal QScrollBar::handle:vertical {
+    min-height: 36px;
+    border-radius: 4px;
+}
+
+#saida_terminal QScrollBar::add-line:vertical,
+#saida_terminal QScrollBar::sub-line:vertical {
+    height: 0;
+    border: none;
+    background-color: transparent;
+}
+
+#saida_terminal QScrollBar::add-page:vertical,
+#saida_terminal QScrollBar::sub-page:vertical {
+    background-color: transparent;
+}
+
 #scroll_pagina {
     border: none;
 }

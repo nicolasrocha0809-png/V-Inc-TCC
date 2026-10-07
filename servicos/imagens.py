@@ -551,6 +551,31 @@ def localizar_imagem(nome_solicitado, pasta_solicitada=None):
     }
 
 
+def abrir_imagem(caminho_imagem):
+    """Abre uma imagem no visualizador padrão do Windows."""
+    caminho = Path(caminho_imagem)
+
+    if not caminho.exists() or not caminho.is_file():
+        return {
+            "status": "nao_encontrada",
+            "caminho": caminho,
+        }
+
+    try:
+        os.startfile(str(caminho))
+        return {
+            "status": "aberta",
+            "caminho": caminho,
+        }
+
+    except OSError as erro:
+        return {
+            "status": "erro",
+            "caminho": caminho,
+            "erro": str(erro),
+        }
+
+
 def eh_erro_temporario(erro):
     texto = f"{type(erro).__name__}: {erro}".upper()
 

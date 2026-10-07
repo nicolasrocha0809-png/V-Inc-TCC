@@ -18,6 +18,7 @@ from interface.telas.loading import LoadingScreen
 from interface.telas.inicio import InicioScreen
 from interface.telas.comandos import ComandosScreen
 from interface.telas.historico import HistoricoScreen
+from interface.telas.terminal import TerminalScreen
 from interface.telas.configuracoes import ConfiguracoesScreen
 from interface.telas.conta import ContaScreen
 from interface.telas.ajuda import AjudaScreen
@@ -81,12 +82,14 @@ class JanelaPrincipal(QMainWindow):
         self.btn_inicio = self._criar_botao_menu("Início", 2)
         self.btn_comandos = self._criar_botao_menu("Comandos", 3)
         self.btn_historico = self._criar_botao_menu("Histórico", 4)
+        self.btn_terminal = self._criar_botao_menu("Terminal", 8)
         self.btn_config = self._criar_botao_menu("Configurações", 5)
 
         self.botoes_navegacao = {
             2: self.btn_inicio,
             3: self.btn_comandos,
             4: self.btn_historico,
+            8: self.btn_terminal,
             5: self.btn_config,
         }
 
@@ -186,6 +189,7 @@ class JanelaPrincipal(QMainWindow):
             5: "Configurações",
             6: "Minha conta",
             7: "Ajuda e suporte",
+            8: "Terminal",
         }
         tela_atual = self.stack.currentWidget()
         anunciar(tela_atual, f"Tela {nomes_telas.get(index, 'atual')} aberta.")
@@ -213,7 +217,13 @@ class JanelaPrincipal(QMainWindow):
         user_id_ativo = settings.get("usuario", "id_usuario_atual") or self.current_user_id
 
         
-        self.stack.addWidget(InicioScreen())         
+        self.inicio_screen = InicioScreen()
+        self.terminal_screen = TerminalScreen()
+        self.inicio_screen.saida_assistente.connect(
+            self.terminal_screen.adicionar_saida
+        )
+
+        self.stack.addWidget(self.inicio_screen)
         self.stack.addWidget(ComandosScreen())        
         
        
@@ -234,7 +244,8 @@ class JanelaPrincipal(QMainWindow):
             callback_logout=self.encerrar_sessao,
         ))
 
-        self.stack.addWidget(AjudaScreen())          
+        self.stack.addWidget(AjudaScreen())
+        self.stack.addWidget(self.terminal_screen)
         self.mudar_tela(2)
 
     def encerrar_sessao(self):

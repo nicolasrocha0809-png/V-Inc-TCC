@@ -28,7 +28,7 @@ from servicos.cerebro import pensar
 from servicos.voz import ouvir, falar, tocar_sinal
 from servicos.wakeword import aguardar_wakeword
 from servicos.aplicativos import abrir_aplicativo
-from servicos.imagens import localizar_imagem, descrever_imagem
+from servicos.imagens import abrir_imagem, descrever_imagem, localizar_imagem
 import webbrowser
 
 
@@ -1107,6 +1107,14 @@ while True:
                         else:
                             caminho_escolhido = opcoes[indice_escolhido]
 
+                            resultado_abertura = abrir_imagem(caminho_escolhido)
+
+                            if resultado_abertura["status"] != "aberta":
+                                print(
+                                    "Não consegui abrir a imagem no visualizador, "
+                                    "mas continuarei com a descrição."
+                                )
+
                             aviso_analise = (
                                 f"Encontrei {caminho_escolhido.name}, "
                                 f"na pasta {caminho_escolhido.parent.name}. "
@@ -1128,6 +1136,14 @@ while True:
 
                 elif status == "encontrada":
                     caminho = resultado["caminho"]
+
+                    resultado_abertura = abrir_imagem(caminho)
+
+                    if resultado_abertura["status"] != "aberta":
+                        print(
+                            "Não consegui abrir a imagem no visualizador, "
+                            "mas continuarei com a descrição."
+                        )
 
                     aviso_analise = (
                         f"Encontrei {resultado['nome']}. "
