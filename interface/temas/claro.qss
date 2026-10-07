@@ -11,6 +11,50 @@ QLabel { background-color: transparent; }
 #menu_btn:focus, #ajuda_btn:focus { border-color: #20539B; }
 #divisor_sidebar { background-color: #D8E0E3; }
 
+#pagina_conta,
+#conteudo_conta { background-color: #F7F9FA; }
+#card_conta {
+    background-color: #FFFFFF;
+    border-color: #D8E0E3;
+}
+#card_perigo_conta {
+    background-color: #FFF9F8;
+    border-color: #E2AAA6;
+}
+#titulo_card_conta, #label_conta { color: #182022; }
+#descricao_card_conta { color: #586569; }
+#email_conta, #status_conta { color: #20539B; }
+#status_conta[erro="true"],
+#status_perigo_conta { color: #9C2F2B; }
+#campo_conta {
+    background-color: #FFFFFF;
+    color: #182022;
+    border-color: #AAB5B9;
+}
+#campo_conta:focus { border-color: #20539B; }
+#botao_mostrar_senha_conta,
+#botao_sair_conta {
+    background-color: #FFFFFF;
+    color: #173F78;
+    border-color: #AAB5B9;
+}
+#botao_mostrar_senha_conta:hover,
+#botao_sair_conta:hover { background-color: #D8E9FF; }
+#botao_primario_conta {
+    background-color: #20539B;
+    color: #FFFFFF;
+    border-color: #20539B;
+}
+#botao_primario_conta:hover { background-color: #173F78; }
+#botao_excluir_conta {
+    background-color: #FFFFFF;
+    color: #9C2F2B;
+    border-color: #C87772;
+}
+#botao_excluir_conta:hover { background-color: #FFE8E6; }
+#scroll_conta QScrollBar::handle:vertical { background-color: #AAB5B9; }
+#scroll_conta QScrollBar::handle:vertical:hover { background-color: #20539B; }
+
 #pagina_comandos { background-color: #F7F9FA; }
 #rotulo_pagina { color: #20539B; }
 #titulo_pagina { color: #182022; }

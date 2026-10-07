@@ -44,6 +44,98 @@ QWidget {
     border-style: solid;
 }
 
+/* --- Minha conta --- */
+#scroll_conta {
+    border: none;
+}
+
+#card_conta,
+#card_perigo_conta {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 16px;
+}
+
+#titulo_card_conta {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+#descricao_card_conta {
+    font-size: 13px;
+}
+
+#grupo_conta {
+    background-color: transparent;
+    border: none;
+}
+
+#label_conta {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#email_conta {
+    min-height: 22px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+#campo_conta {
+    min-height: 24px;
+    padding: 9px 12px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 10px;
+}
+
+#botao_mostrar_senha_conta,
+#botao_sair_conta,
+#botao_primario_conta,
+#botao_excluir_conta {
+    min-height: 24px;
+    padding: 9px 14px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+#botao_mostrar_senha_conta {
+    min-width: 70px;
+}
+
+#status_conta,
+#status_perigo_conta {
+    min-height: 18px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#scroll_conta QScrollBar:vertical {
+    width: 10px;
+    margin: 6px 2px;
+    border: none;
+    background: transparent;
+}
+
+#scroll_conta QScrollBar::handle:vertical {
+    min-height: 36px;
+    border-radius: 4px;
+}
+
+#scroll_conta QScrollBar::add-line:vertical,
+#scroll_conta QScrollBar::sub-line:vertical {
+    height: 0;
+    border: none;
+    background: transparent;
+}
+
+#scroll_conta QScrollBar::add-page:vertical,
+#scroll_conta QScrollBar::sub-page:vertical {
+    background: transparent;
+}
+
 #divisor_sidebar {
     border: none;
 }

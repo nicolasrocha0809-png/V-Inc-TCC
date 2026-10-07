@@ -12,6 +12,42 @@ QLabel { background-color: transparent; }
 #menu_btn:focus, #ajuda_btn:focus { border-color: #FFFFFF; }
 #divisor_sidebar { background-color: #FFFF00; }
 
+#pagina_conta,
+#conteudo_conta,
+#card_conta,
+#card_perigo_conta {
+    background-color: #000000;
+}
+#card_conta,
+#card_perigo_conta { border-color: #FFFF00; }
+#titulo_card_conta,
+#descricao_card_conta,
+#label_conta,
+#email_conta,
+#status_conta,
+#status_perigo_conta { color: #FFFF00; }
+#campo_conta {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+#botao_mostrar_senha_conta,
+#botao_sair_conta,
+#botao_primario_conta,
+#botao_excluir_conta {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+#botao_mostrar_senha_conta:hover,
+#botao_sair_conta:hover,
+#botao_primario_conta:hover,
+#botao_excluir_conta:hover {
+    background-color: #FFFF00;
+    color: #000000;
+}
+#scroll_conta QScrollBar::handle:vertical { background-color: #FFFF00; }
+
 #pagina_comandos { background-color: #000000; }
 #rotulo_pagina, #titulo_pagina, #subtitulo_pagina,
 #titulo_card_comando, #descricao_card_comando, #exemplo_comando {

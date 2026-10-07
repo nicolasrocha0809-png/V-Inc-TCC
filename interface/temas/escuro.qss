@@ -42,6 +42,50 @@ QLabel {
 
 #divisor_sidebar { background-color: #21456F; }
 
+#pagina_conta,
+#conteudo_conta { background-color: #07162B; }
+#card_conta {
+    background-color: #102A4C;
+    border-color: #21456F;
+}
+#card_perigo_conta {
+    background-color: #2C1D2A;
+    border-color: #8A4B55;
+}
+#titulo_card_conta, #label_conta { color: #F2F7FF; }
+#descricao_card_conta { color: #AFC3DC; }
+#email_conta, #status_conta { color: #8FC5FF; }
+#status_conta[erro="true"],
+#status_perigo_conta { color: #FFB4AB; }
+#campo_conta {
+    background-color: #16385F;
+    color: #F2F7FF;
+    border-color: #476D9C;
+}
+#campo_conta:focus { border-color: #8FC5FF; }
+#botao_mostrar_senha_conta,
+#botao_sair_conta {
+    background-color: transparent;
+    color: #A9D2FF;
+    border-color: #476D9C;
+}
+#botao_mostrar_senha_conta:hover,
+#botao_sair_conta:hover { background-color: #16385F; }
+#botao_primario_conta {
+    background-color: #A9D2FF;
+    color: #07162B;
+    border-color: #A9D2FF;
+}
+#botao_primario_conta:hover { background-color: #8FC5FF; }
+#botao_excluir_conta {
+    background-color: transparent;
+    color: #FFB4AB;
+    border-color: #B65E59;
+}
+#botao_excluir_conta:hover { background-color: #5A2528; }
+#scroll_conta QScrollBar::handle:vertical { background-color: #476D9C; }
+#scroll_conta QScrollBar::handle:vertical:hover { background-color: #8FC5FF; }
+
 #pagina_comandos { background-color: #07162B; }
 #rotulo_pagina { color: #8FC5FF; }
 #titulo_pagina { color: #F2F7FF; }

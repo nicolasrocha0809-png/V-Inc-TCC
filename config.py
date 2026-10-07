@@ -25,7 +25,11 @@ class ConfigManager:
                 "saida": None,
             },
             "geral": {"idioma": "pt_BR"},
-            "usuario": {"id_usuario_atual": None}
+            "usuario": {
+                "id_usuario_atual": None,
+                "email_usuario_atual": None,
+                "sessao_ativa": False,
+            },
         }
 
     def load_settings(self):

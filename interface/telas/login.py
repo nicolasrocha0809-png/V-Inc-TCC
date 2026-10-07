@@ -448,15 +448,21 @@ class LoginScreen(QWidget):
         senha = self.txt_senha.text().strip()
 
         try:
-            res = self.supabase.table("usuarios").select("id, senha_hash").eq("email", email).execute()
+            res = (
+                self.supabase.table("usuarios")
+                .select("id, email, senha_hash")
+                .eq("email", email)
+                .limit(1)
+                .execute()
+            )
            
             if res.data and bcrypt.checkpw(senha.encode('utf-8'), res.data[0]["senha_hash"].encode('utf-8')):
                 user_id = res.data[0]["id"]
                 
-                # ADICIONADO: Atualiza o ID do usuário logado na sessão ativa
-                settings.set("usuario", "id_usuario_atual", user_id)
-                
-                if self.callback_sucesso: self.callback_sucesso(user_id)
+                email_usuario = res.data[0].get("email") or email
+
+                if self.callback_sucesso:
+                    self.callback_sucesso(user_id, email_usuario)
             else: 
                 self.anunciar_status(self.lbl_status, "Credenciais inválidas.")
         except Exception as e:
