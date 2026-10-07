@@ -1,5 +1,16 @@
 
 QWidget { background-color: #000000; color: #FFFF00; }
+QPushButton:focus, QComboBox:focus, QLineEdit:focus, QToolButton:focus {
+    border-color: #FFFFFF;
+}
+QComboBox:focus, QLineEdit:focus, QToolButton:focus {
+    background-color: #FFFFFF;
+    color: #000000;
+}
+QSlider:focus::handle:horizontal {
+    background-color: #FFFFFF;
+    border-color: #FFFF00;
+}
 QLabel { background-color: transparent; }
 
 #sidebar { background-color: #000000; border-right-color: #FFFF00; }
@@ -11,6 +22,42 @@ QLabel { background-color: transparent; }
 }
 #menu_btn:focus, #ajuda_btn:focus { border-color: #FFFFFF; }
 #divisor_sidebar { background-color: #FFFF00; }
+
+#pagina_conta,
+#conteudo_conta,
+#card_conta,
+#card_perigo_conta {
+    background-color: #000000;
+}
+#card_conta,
+#card_perigo_conta { border-color: #FFFF00; }
+#titulo_card_conta,
+#descricao_card_conta,
+#label_conta,
+#email_conta,
+#status_conta,
+#status_perigo_conta { color: #FFFF00; }
+#campo_conta {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+#botao_mostrar_senha_conta,
+#botao_sair_conta,
+#botao_primario_conta,
+#botao_excluir_conta {
+    background-color: #000000;
+    color: #FFFF00;
+    border-color: #FFFF00;
+}
+#botao_mostrar_senha_conta:hover,
+#botao_sair_conta:hover,
+#botao_primario_conta:hover,
+#botao_excluir_conta:hover {
+    background-color: #FFFF00;
+    color: #000000;
+}
+#scroll_conta QScrollBar::handle:vertical { background-color: #FFFF00; }
 
 #pagina_comandos { background-color: #000000; }
 #rotulo_pagina, #titulo_pagina, #subtitulo_pagina,
@@ -95,6 +142,8 @@ QLabel { background-color: transparent; }
 }
 
 #pagina_inicio, #conteudo_inicio { background-color: #000000; }
+#scroll_inicio { background-color: #000000; }
+#scroll_inicio QScrollBar::handle:vertical { background-color: #FFFF00; }
 #estado_assistente, #titulo_campo_audio { color: #FFFF00; }
 #botao_microfone {
     background-color: #FFFF00;
@@ -231,7 +280,11 @@ QLineEdit { background-color: #000000; color: #FFFF00; border-color: #FFFF00; }
     selection-color: #000000;
 }
 
-#pagina_login QLineEdit:focus { border-color: #FFFFFF; }
+#pagina_login QLineEdit:focus {
+    background-color: #FFFFFF;
+    color: #000000;
+    border-color: #FFFF00;
+}
 
 #pagina_login QToolButton {
     background-color: #000000;
@@ -243,6 +296,12 @@ QLineEdit { background-color: #000000; color: #FFFF00; border-color: #FFFF00; }
 #pagina_login #btn_entrar,
 #pagina_login #btn_secundario:hover {
     background-color: #FFFF00;
+    color: #000000;
+    border-color: #FFFF00;
+}
+
+#pagina_login QToolButton:focus {
+    background-color: #FFFFFF;
     color: #000000;
     border-color: #FFFF00;
 }
@@ -263,6 +322,15 @@ QLineEdit { background-color: #000000; color: #FFFF00; border-color: #FFFF00; }
 
 #login_scroll_area QScrollBar::handle:vertical { background-color: #FFFF00; }
 
+#campo_conta:focus,
+#campo_configuracao:focus,
+#campo_audio_inicio:focus,
+#ordem_historico:focus {
+    background-color: #333300;
+    color: #FFFF00;
+    border-color: #FFFFFF;
+}
+
 /* --- Carregamento --- */
 #pagina_loading,
 #card_loading {
@@ -281,3 +349,45 @@ QLineEdit { background-color: #000000; color: #FFFF00; border-color: #FFFF00; }
     border-color: #FFFF00;
 }
 #barra_loading::chunk { background-color: #FFFF00; }
+
+/* --- Foco de teclado consistente em todos os controles --- */
+#menu_btn:focus,
+#ajuda_btn:focus,
+#botao_mostrar_senha_conta:focus,
+#botao_sair_conta:focus,
+#botao_primario_conta:focus,
+#botao_excluir_conta:focus,
+#botao_atualizar_historico:focus,
+#botao_limpar_historico:focus,
+#botao_excluir_historico:focus,
+#botao_secundario_configuracoes:focus,
+#botao_microfone:focus,
+#botao_iniciar_assistente:focus,
+#botao_configuracoes_voz:focus,
+#botao_atalho_ajuda:focus,
+#botao_copiar_suporte:focus,
+#botao_pergunta:focus {
+    background-color: #FFFFFF;
+    color: #000000;
+    border: 3px solid #FFFF00;
+}
+
+QSlider#slider_configuracao[focoTeclado="true"]::handle:horizontal {
+    width: 20px;
+    height: 20px;
+    margin: -7px 0;
+    background-color: #FFFF00;
+    border: 3px solid #FFFFFF;
+    border-radius: 10px;
+}
+
+#campo_conta:focus,
+#campo_configuracao:focus,
+#campo_audio_inicio:focus,
+#ordem_historico:focus,
+#pagina_login QLineEdit:focus,
+#pagina_login QToolButton:focus {
+    background-color: #FFFFFF;
+    color: #000000;
+    border: 3px solid #FFFF00;
+}

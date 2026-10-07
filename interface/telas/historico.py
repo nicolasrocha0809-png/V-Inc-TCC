@@ -13,6 +13,7 @@ from PySide6.QtGui import QFontMetrics
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QFrame,
+    QGridLayout,
     QHBoxLayout,
     QLabel,
     QListWidget,
@@ -26,6 +27,7 @@ from PySide6.QtWidgets import (
 )
 
 from config import settings
+from interface.acessibilidade import anunciar
 
 
 class ListaHistorico(QListWidget):
@@ -76,6 +78,7 @@ class HistoricoScreen(QWidget):
         self.supabase = supabase_client
         self.user_id = user_id
         self._primeira_exibicao = True
+        self._barra_compacta = None
 
         self.setObjectName("pagina_historico")
 
@@ -104,8 +107,9 @@ class HistoricoScreen(QWidget):
 
         layout_principal.addLayout(textos_cabecalho)
 
-        barra_acoes = QHBoxLayout()
-        barra_acoes.setSpacing(10)
+        self.barra_acoes = QGridLayout()
+        self.barra_acoes.setHorizontalSpacing(10)
+        self.barra_acoes.setVerticalSpacing(10)
 
         self.lbl_resumo = QLabel("Carregando histórico...")
         self.lbl_resumo.setObjectName("resumo_historico")
@@ -138,12 +142,8 @@ class HistoricoScreen(QWidget):
         )
         self.btn_limpar.clicked.connect(self.excluir_todo_historico)
 
-        barra_acoes.addWidget(self.lbl_resumo)
-        barra_acoes.addStretch()
-        barra_acoes.addWidget(self.combo_ordem)
-        barra_acoes.addWidget(self.btn_atualizar)
-        barra_acoes.addWidget(self.btn_limpar)
-        layout_principal.addLayout(barra_acoes)
+        layout_principal.addLayout(self.barra_acoes)
+        self._organizar_barra_acoes(self.width() < 800)
 
         self.conteudo = QStackedWidget()
         self.conteudo.setObjectName("conteudo_historico")
@@ -173,6 +173,35 @@ class HistoricoScreen(QWidget):
             self._mostrar_estado(
                 "Não foi possível acessar o histórico porque a conexão está indisponível."
             )
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._organizar_barra_acoes(event.size().width() < 800)
+
+    def _organizar_barra_acoes(self, compacta):
+        if compacta == self._barra_compacta:
+            return
+
+        while self.barra_acoes.count():
+            self.barra_acoes.takeAt(0)
+
+        for coluna in range(5):
+            self.barra_acoes.setColumnStretch(coluna, 0)
+
+        if compacta:
+            self.barra_acoes.addWidget(self.lbl_resumo, 0, 0, 1, 3)
+            self.barra_acoes.addWidget(self.combo_ordem, 1, 0)
+            self.barra_acoes.addWidget(self.btn_atualizar, 1, 1)
+            self.barra_acoes.addWidget(self.btn_limpar, 1, 2)
+            self.barra_acoes.setColumnStretch(0, 1)
+        else:
+            self.barra_acoes.addWidget(self.lbl_resumo, 0, 0)
+            self.barra_acoes.addWidget(self.combo_ordem, 0, 2)
+            self.barra_acoes.addWidget(self.btn_atualizar, 0, 3)
+            self.barra_acoes.addWidget(self.btn_limpar, 0, 4)
+            self.barra_acoes.setColumnStretch(1, 1)
+
+        self._barra_compacta = compacta
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -229,6 +258,7 @@ class HistoricoScreen(QWidget):
             sufixo = "comando registrado" if quantidade == 1 else "comandos registrados"
             self.lbl_resumo.setText(f"{quantidade} {sufixo}")
             self.conteudo.setCurrentWidget(self.lista)
+            anunciar(self.lbl_resumo, f"Histórico atualizado. {quantidade} {sufixo}.")
 
         except Exception as erro:
             print(f"Erro ao carregar histórico: {erro}")
@@ -316,6 +346,7 @@ class HistoricoScreen(QWidget):
 
             consulta.eq("id_usuario", usuario_ativo).execute()
             self.carregar_historico()
+            anunciar(self.lbl_resumo, "Comando excluído do histórico.")
 
         except Exception as erro:
             print(f"Erro ao excluir registro do histórico: {erro}")
@@ -347,6 +378,7 @@ class HistoricoScreen(QWidget):
                 .execute()
             )
             self.carregar_historico()
+            anunciar(self.lbl_resumo, "Todo o histórico foi excluído.")
 
         except Exception as erro:
             print(f"Erro ao limpar histórico: {erro}")
@@ -399,6 +431,7 @@ class HistoricoScreen(QWidget):
         self.lbl_resumo.setText(resumo)
         self.lbl_estado.setText(mensagem)
         self.conteudo.setCurrentWidget(self.lbl_estado)
+        anunciar(self.lbl_estado, mensagem, assertivo="não foi possível" in mensagem.lower())
 
     @staticmethod
     def _formatar_data(data_str):

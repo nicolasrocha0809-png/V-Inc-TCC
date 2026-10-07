@@ -1,5 +1,12 @@
-from PySide6.QtCore import QAbstractAnimation, QEasingCurve, QPropertyAnimation, Qt
+from PySide6.QtCore import (
+    QAbstractAnimation,
+    QEasingCurve,
+    QPropertyAnimation,
+    QTimer,
+    Qt,
+)
 from PySide6.QtWidgets import (
+    QApplication,
     QComboBox,
     QFrame,
     QGridLayout,
@@ -17,6 +24,7 @@ from config import settings
 from interface.audio_devices import listar_dispositivos, nomes_com_padrao
 from interface.prefs_manager import PrefsManager
 from interface.theme_manager import aplicar_estilo
+from interface.acessibilidade import atualizar_status
 
 
 class ScrollConfiguracoes(QScrollArea):
@@ -60,10 +68,21 @@ class ScrollConfiguracoes(QScrollArea):
 
 
 class ConfiguracoesScreen(QWidget):
+    TEXTO_SALVAMENTO_AUTOMATICO = (
+        "As alterações são aplicadas e salvas automaticamente."
+    )
+
     def __init__(self, parent=None, supabase_client=None, user_id=None):
         super().__init__(parent)
         self.prefs_manager = PrefsManager(supabase_client, user_id)
         self._colunas_atuais = 0
+        self._inicializando = True
+        self._ultimas_preferencias_salvas = None
+
+        self._timer_salvamento = QTimer(self)
+        self._timer_salvamento.setSingleShot(True)
+        self._timer_salvamento.setInterval(650)
+        self._timer_salvamento.timeout.connect(self._salvar_automaticamente)
 
         self.setObjectName("pagina_configuracoes")
 
@@ -110,28 +129,21 @@ class ConfiguracoesScreen(QWidget):
         self.cards = [self.card_visual, self.card_audio]
         layout_conteudo.addLayout(self.grid_cards)
 
-        rodape = QHBoxLayout()
-        rodape.setSpacing(14)
-
-        self.lbl_status = QLabel("")
+        self.lbl_status = QLabel(self.TEXTO_SALVAMENTO_AUTOMATICO)
         self.lbl_status.setObjectName("status_configuracoes")
         self.lbl_status.setWordWrap(True)
-
-        self.btn_aplicar = QPushButton("Salvar alterações")
-        self.btn_aplicar.setObjectName("botao_salvar_configuracoes")
-        self.btn_aplicar.setCursor(Qt.PointingHandCursor)
-        self.btn_aplicar.setAccessibleDescription(
-            "Salva e aplica as preferências selecionadas."
+        self.lbl_status.setAccessibleName("Estado do salvamento automático")
+        self.lbl_status.setAccessibleDescription(
+            "Informa se as preferências foram salvas localmente e sincronizadas."
         )
-        self.btn_aplicar.clicked.connect(self.aplicar_configuracoes)
-
-        rodape.addWidget(self.lbl_status, 1)
-        rodape.addWidget(self.btn_aplicar)
-        layout_conteudo.addLayout(rodape)
+        layout_conteudo.addWidget(self.lbl_status)
         layout_conteudo.addStretch()
 
         layout_principal.addWidget(scroll)
         self._organizar_cards(2)
+        self._conectar_salvamento_automatico()
+        self._ultimas_preferencias_salvas = self._obter_preferencias()
+        self._inicializando = False
 
     def _criar_card_visual(self):
         card, layout = self._criar_card(
@@ -350,8 +362,8 @@ class ConfiguracoesScreen(QWidget):
         self._selecionar_texto(self.combo_microfone, microfone_anterior)
         self._selecionar_texto(self.combo_saida, saida_anterior)
 
-    def aplicar_configuracoes(self):
-        preferencias = {
+    def _obter_preferencias(self):
+        return {
             "tema": self.combo_tema.currentData(),
             "fonte": self.combo_fonte.currentData(),
             "idioma": self.combo_idioma.currentData(),
@@ -361,30 +373,102 @@ class ConfiguracoesScreen(QWidget):
             "saida": self.combo_saida.currentText(),
         }
 
-        self.btn_aplicar.setEnabled(False)
-        self.btn_aplicar.setText("Salvando...")
+    def _conectar_salvamento_automatico(self):
+        self.combo_tema.currentIndexChanged.connect(
+            self._aplicar_aparencia_e_agendar
+        )
+        self.combo_fonte.currentIndexChanged.connect(
+            self._aplicar_aparencia_e_agendar
+        )
+
+        for combo in (
+            self.combo_idioma,
+            self.combo_microfone,
+            self.combo_saida,
+        ):
+            combo.currentIndexChanged.connect(self._agendar_salvamento)
+
+        self.slider_volume.valueChanged.connect(self._agendar_salvamento)
+        self.slider_velocidade.valueChanged.connect(self._agendar_salvamento)
+
+    def _aplicar_aparencia_e_agendar(self, _indice=None):
+        if self._inicializando:
+            return
+
+        controle_focado = QApplication.focusWidget()
+        aplicar_estilo(
+            self.combo_tema.currentData(),
+            self.combo_fonte.currentData(),
+        )
+
+        if controle_focado is not None:
+            QTimer.singleShot(
+                0,
+                lambda controle=controle_focado: self._restaurar_foco(controle),
+            )
+
+        self._agendar_salvamento()
+
+    @staticmethod
+    def _restaurar_foco(controle):
+        try:
+            controle.setFocus(Qt.OtherFocusReason)
+        except RuntimeError:
+            pass
+
+    def _agendar_salvamento(self, _valor=None):
+        if self._inicializando:
+            return
+
+        self._definir_status_silencioso(
+            "Salvando alterações automaticamente..."
+        )
+        self._timer_salvamento.start()
+
+    def _definir_status_silencioso(self, mensagem):
+        """Atualiza progresso visual sem repetir anúncios durante ajustes."""
+        self.lbl_status.setProperty("erro", False)
+        self.lbl_status.style().unpolish(self.lbl_status)
+        self.lbl_status.style().polish(self.lbl_status)
+        self.lbl_status.setText(mensagem)
+
+    def _salvar_automaticamente(self):
+        preferencias = self._obter_preferencias()
+
+        if preferencias == self._ultimas_preferencias_salvas:
+            self._definir_status_silencioso(
+                self.TEXTO_SALVAMENTO_AUTOMATICO
+            )
+            return
 
         try:
             sincronizado = self.prefs_manager.salvar(preferencias)
-            aplicar_estilo(preferencias["tema"], preferencias["fonte"])
+            self._ultimas_preferencias_salvas = preferencias.copy()
 
             if sincronizado is False:
-                self.lbl_status.setText(
+                atualizar_status(
+                    self.lbl_status,
                     "Alterações salvas neste computador. "
-                    "A sincronização online não foi concluída."
+                    "A sincronização online não foi concluída.",
+                )
+            elif sincronizado is None:
+                atualizar_status(
+                    self.lbl_status,
+                    "Alterações aplicadas e salvas neste computador.",
                 )
             else:
-                self.lbl_status.setText("Alterações aplicadas e salvas.")
+                atualizar_status(
+                    self.lbl_status,
+                    "Alterações aplicadas e salvas.",
+                )
 
         except Exception as erro:
             print(f"Erro ao salvar configurações: {erro}")
-            self.lbl_status.setText(
-                "Não foi possível salvar as alterações. Tente novamente."
+            atualizar_status(
+                self.lbl_status,
+                "Não foi possível salvar as alterações. Tente novamente.",
+                erro=True,
             )
-
-        finally:
-            self.btn_aplicar.setEnabled(True)
-            self.btn_aplicar.setText("Salvar alterações")
 
     def _organizar_cards(self, colunas):
         if colunas == self._colunas_atuais:

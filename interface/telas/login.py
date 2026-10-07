@@ -1,12 +1,13 @@
-import sys, random, bcrypt, os, threading
+import sys, random, bcrypt, os, re, threading
 from pathlib import Path
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QBoxLayout, QLabel, QLineEdit, QPushButton, QFrame, QStyle, QStyleOptionButton, QToolButton, QSizePolicy, QScrollArea
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QPixmap, QFont, QFontMetrics, QKeySequence, QShortcut, QPainter, QPen, QColor, QIcon, QAccessible, QAccessibleAnnouncementEvent, QPalette
+from PySide6.QtCore import QEvent, Qt, QTimer
+from PySide6.QtGui import QPixmap, QFont, QFontMetrics, QKeySequence, QShortcut, QPainter, QPen, QColor, QIcon, QPalette
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from interface.prefs_manager import PrefsManager
+from interface.acessibilidade import atualizar_status
 from config import settings  
 
 EMAIL_REMETENTE, SENHA_REMETENTE = os.getenv("EMAIL_REMETENTE"), os.getenv("SENHA_REMETENTE")
@@ -14,6 +15,11 @@ EMAIL_REMETENTE, SENHA_REMETENTE = os.getenv("EMAIL_REMETENTE"), os.getenv("SENH
 def normalizar_email(email):
     """Padroniza o e-mail para ignorar maiúsculas e espaços extras."""
     return (email or "").strip().lower()
+
+
+def email_valido(email):
+    """Validação prática sem rejeitar endereços válidos pouco comuns."""
+    return bool(re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email or ""))
 
 class BotaoAcessivel(QPushButton):
     def paintEvent(self, event):
@@ -58,6 +64,21 @@ class BotaoVisibilidadeSenha(QToolButton):
         return QIcon(pixmap)
     def atualizar_icone(self):
         self.setIcon(self.criar_icone(self.senha_visivel))
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        # A paleta correta só está disponível depois que o botão ganha um pai.
+        self.atualizar_icone()
+
+    def changeEvent(self, event):
+        super().changeEvent(event)
+
+        if (
+            hasattr(self, "senha_visivel")
+            and event.type() in (QEvent.PaletteChange, QEvent.StyleChange)
+        ):
+            self.atualizar_icone()
+
     def alternar_visibilidade(self, visivel):
         self.senha_visivel = visivel
         self.campo_senha.setEchoMode(
@@ -110,6 +131,9 @@ class LoginScreen(QWidget):
         self.tela_atual = "login"
         self.botao_acao_atual = None
         self.botao_voltar_atual = None
+        self._cadastro_em_andamento = False
+        self._mensagem_login_pendente = None
+        self._email_login_pendente = None
         self.atalho_enter = QShortcut(QKeySequence(Qt.Key_Return), self)
         self.atalho_enter.setContext(Qt.WidgetWithChildrenShortcut)
         self.atalho_enter.activated.connect(self.ativar_acao_principal)
@@ -240,6 +264,10 @@ class LoginScreen(QWidget):
         self.btn_rec = BotaoAcessivel("Esqueci minha senha"); self.btn_rec.setObjectName("btn_link")
         self.btn_rec.clicked.connect(self.criar_tela_recuperacao)
         self.lbl_status = QLabel(""); self.lbl_status.setObjectName("status_msg")
+        self.lbl_status.setWordWrap(True)
+        self.lbl_status.setMinimumHeight(44)
+        self.lbl_status.setMaximumWidth(380)
+        self.lbl_status.setAlignment(Qt.AlignCenter)
         self.linha_senha = self.criar_linha_senha(self.txt_senha, self.btn_mostrar_senha)
         for w in [
             titulo_formulario,
@@ -265,6 +293,25 @@ class LoginScreen(QWidget):
         painel_layout.addWidget(painel_formulario)
         self.card_layout.addWidget(painel, alignment=Qt.AlignCenter)
         self.atualizar_layout_responsivo()
+
+        mensagem = self._mensagem_login_pendente
+        email_preenchido = self._email_login_pendente
+        self._mensagem_login_pendente = None
+        self._email_login_pendente = None
+
+        if email_preenchido:
+            self.txt_email.setText(email_preenchido)
+            self.txt_senha.setFocus()
+
+        if mensagem:
+            QTimer.singleShot(
+                0,
+                lambda: self.anunciar_status(
+                    self.lbl_status,
+                    mensagem,
+                    erro=False,
+                ),
+            )
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.atualizar_layout_responsivo()
@@ -417,16 +464,8 @@ class LoginScreen(QWidget):
         if self.botao_acao_atual and self.botao_acao_atual.isVisible():
             self.botao_acao_atual.click()
 
-    def anunciar_status(self, label, mensagem):
-        label.setText(mensagem)
-        evento = QAccessibleAnnouncementEvent(label, mensagem)
-        try:
-            # Algumas versões do PySide6 não expõem o enum Politeness.
-            evento.setPoliteness(QAccessibleAnnouncementEvent.Politeness.Assertive)
-        except AttributeError:
-            # O anúncio continua válido com a política padrão da biblioteca.
-            pass
-        QAccessible.updateAccessibility(evento)
+    def anunciar_status(self, label, mensagem, erro=True):
+        atualizar_status(label, mensagem, erro=erro)
 
     def voltar_para_login(self):
         if self.tela_atual == "login":
@@ -448,15 +487,21 @@ class LoginScreen(QWidget):
         senha = self.txt_senha.text().strip()
 
         try:
-            res = self.supabase.table("usuarios").select("id, senha_hash").eq("email", email).execute()
+            res = (
+                self.supabase.table("usuarios")
+                .select("id, email, senha_hash")
+                .eq("email", email)
+                .limit(1)
+                .execute()
+            )
            
             if res.data and bcrypt.checkpw(senha.encode('utf-8'), res.data[0]["senha_hash"].encode('utf-8')):
                 user_id = res.data[0]["id"]
                 
-                # ADICIONADO: Atualiza o ID do usuário logado na sessão ativa
-                settings.set("usuario", "id_usuario_atual", user_id)
-                
-                if self.callback_sucesso: self.callback_sucesso(user_id)
+                email_usuario = res.data[0].get("email") or email
+
+                if self.callback_sucesso:
+                    self.callback_sucesso(user_id, email_usuario)
             else: 
                 self.anunciar_status(self.lbl_status, "Credenciais inválidas.")
         except Exception as e:
@@ -465,135 +510,170 @@ class LoginScreen(QWidget):
 
     def criar_tela_cadastro(self):
         self.limpar_card()
+
         container = QWidget(self.card_container)
         container.setObjectName("cadastro_card")
-        container.setMaximumWidth(720)
+        container.setMaximumWidth(560)
         container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+
         layout = QVBoxLayout(container)
-        layout.setContentsMargins(40, 40, 40, 40)
-        layout.setSpacing(24)
+        layout.setContentsMargins(28, 22, 28, 22)
+        layout.setSpacing(10)
         layout.setAlignment(Qt.AlignCenter)
-        self.card_layout.addWidget(container, alignment=Qt.AlignCenter)
+
+        # Mesmo cabeçalho visual usado na tela de login.
         cabecalho = QWidget(container)
-        cabecalho.setStyleSheet("background: transparent;")
-        cabecalho_layout = QVBoxLayout(cabecalho)
+        cabecalho.setObjectName("cabecalho_login")
+        cabecalho_layout = QHBoxLayout(cabecalho)
         cabecalho_layout.setContentsMargins(0, 0, 0, 0)
-        cabecalho_layout.setSpacing(8)
-        marca_linha = QHBoxLayout()
-        marca_linha.setSpacing(12)
-        marca_linha.setAlignment(Qt.AlignCenter)
-        marca = QLabel("V.INC", cabecalho)
-        marca.setObjectName("marca_cadastro")
-        marca.setAlignment(Qt.AlignCenter)
-        marca_linha.addWidget(marca)
-        cabecalho_layout.addLayout(marca_linha)
-        lbl_titulo = QLabel("Criar nova conta", cabecalho)
-        lbl_titulo.setObjectName("titulo_tela")
-        lbl_titulo.setAlignment(Qt.AlignCenter)
-        cabecalho_layout.addWidget(lbl_titulo)
+        cabecalho_layout.setSpacing(12)
+        cabecalho_layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+
+        self.lbl_logo = QLabel(cabecalho)
+        self.lbl_logo.setObjectName("logo_login")
+        raiz_projeto = Path(__file__).resolve().parents[2]
+        logo_path = raiz_projeto / "interface" / "assets" / "logo_vinc.svg"
+        self.logo_pixmap = QPixmap(str(logo_path))
+
+        if self.logo_pixmap.isNull():
+            self.logo_pixmap = QPixmap(str(raiz_projeto / "logo.png"))
+
+        self.lbl_titulo = QLabel("V.INC", cabecalho)
+        self.lbl_titulo.setObjectName("titulo_login")
+        self.lbl_sub = QLabel("VOZ INCLUSIVA", cabecalho)
+        self.lbl_sub.setObjectName("subtitulo_login")
+        self.atualizar_logo()
+
+        textos_marca = QVBoxLayout()
+        textos_marca.setContentsMargins(0, 0, 0, 0)
+        textos_marca.setSpacing(2)
+        textos_marca.addWidget(self.lbl_titulo)
+        textos_marca.addWidget(self.lbl_sub)
+
+        cabecalho_layout.addWidget(self.lbl_logo)
+        cabecalho_layout.addLayout(textos_marca)
         layout.addWidget(cabecalho)
+
         formulario = QVBoxLayout()
-        formulario.setSpacing(18)
+        formulario.setContentsMargins(0, 0, 0, 0)
+        formulario.setSpacing(8)
         layout.addLayout(formulario)
-        lbl_descricao = QLabel("Cadastre seu e-mail e defina uma senha para acessar o V.INC.")
-        lbl_descricao.setObjectName("descricao_tela")
+
+        lbl_titulo = QLabel("Crie sua conta", container)
+        lbl_titulo.setObjectName("titulo_form_login")
+
+        lbl_descricao = QLabel(
+            "Cadastre seu e-mail e defina uma senha para acessar o V.INC.",
+            container,
+        )
+        lbl_descricao.setObjectName("descricao_form_login")
         lbl_descricao.setWordWrap(True)
-        lbl_descricao.setMaximumWidth(620)
-        lbl_descricao.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        lbl_descricao.setMinimumHeight(48)
-        lbl_descricao.setAlignment(Qt.AlignCenter)
-        lbl_email = QLabel("E-mail")
+        lbl_descricao.setMaximumWidth(480)
+
+        lbl_email = QLabel("E-mail", container)
         lbl_email.setObjectName("label_input")
-        lbl_email.setAlignment(Qt.AlignLeft)
-        self.txt_n_email = QLineEdit(); self.txt_n_email.setPlaceholderText("nome@exemplo.com")
+        self.txt_n_email = QLineEdit(container)
+        self.txt_n_email.setPlaceholderText("nome@exemplo.com")
         self.txt_n_email.setAccessibleName("E-mail para cadastro")
-        self.txt_n_email.setMaximumWidth(620)
+        self.txt_n_email.setMaximumWidth(380)
         lbl_email.setBuddy(self.txt_n_email)
-        lbl_senha = QLabel("Senha")
+
+        lbl_senha = QLabel("Senha", container)
         lbl_senha.setObjectName("label_input")
-        lbl_senha.setAlignment(Qt.AlignLeft)
         self.txt_n_senha, self.btn_mostrar_nova_senha = self.criar_campo_senha(
             "Crie uma senha segura",
             "Senha para cadastro",
-            "A senha deve ter pelo menos 8 caracteres."
+            "A senha deve ter pelo menos 8 caracteres.",
         )
-        self.txt_n_senha.setMaximumWidth(620)
+        self.txt_n_senha.setMaximumWidth(380)
         lbl_senha.setBuddy(self.txt_n_senha)
+
         lbl_requisito = QLabel("Use pelo menos 8 caracteres.")
         lbl_requisito.setObjectName("ajuda_input")
-        lbl_requisito.setAlignment(Qt.AlignCenter)
-        btn_salvar = BotaoAcessivel("Criar conta"); btn_salvar.setObjectName("btn_entrar"); btn_salvar.clicked.connect(self.acao_cadastrar)
-        btn_salvar.setAccessibleName("Criar conta")
-        btn_salvar.setMaximumWidth(620)
-        btn_salvar.setMinimumHeight(64)
-        btn_voltar = BotaoAcessivel("Voltar"); btn_voltar.setObjectName("btn_secundario"); btn_voltar.clicked.connect(self.criar_tela_login)
-        btn_voltar.setAccessibleName("Voltar para o login")
-        btn_voltar.setMaximumWidth(620)
-        btn_voltar.hide()
-        self.lbl_status_cadastro = QLabel(""); self.lbl_status_cadastro.setObjectName("status_msg")
-        self.lbl_status_cadastro.setAlignment(Qt.AlignCenter)
+        lbl_requisito.setAlignment(Qt.AlignLeft)
+
         self.linha_senha = self.criar_linha_senha(self.txt_n_senha, self.btn_mostrar_nova_senha)
-        self.linha_senha.setMaximumWidth(620)
-        def adicionar_campo(label, campo, tipo, botao_visibilidade=None):
-            grupo = QWidget(container)
-            grupo.setStyleSheet("background: transparent;")
-            grupo_layout = QVBoxLayout(grupo)
-            grupo_layout.setContentsMargins(0, 0, 0, 0)
-            grupo_layout.setSpacing(8)
-            grupo_layout.addWidget(label)
-            linha = QWidget(grupo)
-            linha.setObjectName("campo_cadastro")
-            linha_layout = QHBoxLayout(linha)
-            linha_layout.setContentsMargins(14, 8, 14, 8)
-            linha_layout.setSpacing(12)
-            linha_layout.addWidget(IconeCadastro(tipo, linha))
-            campo.setObjectName("campo_cadastro_input")
-            linha_layout.addWidget(campo, stretch=1)
-            if botao_visibilidade is not None:
-                botao_visibilidade.setParent(linha)
-                linha_layout.addWidget(botao_visibilidade)
-            grupo_layout.addWidget(linha)
-            formulario.addWidget(grupo)
-        adicionar_campo(lbl_email, self.txt_n_email, "email")
-        adicionar_campo(lbl_senha, self.txt_n_senha, "senha", self.btn_mostrar_nova_senha)
-        formulario.addWidget(lbl_requisito)
-        confirmar = QLineEdit(container)
-        confirmar.setPlaceholderText("••••••••")
-        confirmar.setEchoMode(QLineEdit.Password)
-        confirmar.setAccessibleName("Confirmar senha")
-        confirmar.setAccessibleDescription("Repita a senha para confirmar o cadastro.")
-        self.btn_mostrar_nova_senha.toggled.connect(
-            lambda visivel: confirmar.setEchoMode(QLineEdit.Normal if visivel else QLineEdit.Password)
-        )
-        lbl_confirmar = QLabel("Confirmar Senha", container)
+        self.linha_senha.setMaximumWidth(380)
+
+        lbl_confirmar = QLabel("Confirmar senha", container)
         lbl_confirmar.setObjectName("label_input")
-        lbl_confirmar.setAlignment(Qt.AlignLeft)
-        adicionar_campo(lbl_confirmar, confirmar, "confirmar")
-        self.txt_confirmar_senha = confirmar
-        self.btn_confirmar_senha = None
-        formulario.addWidget(btn_salvar, alignment=Qt.AlignCenter)
-        formulario.addWidget(btn_voltar, alignment=Qt.AlignCenter)
-        formulario.addWidget(self.lbl_status_cadastro)
+        self.txt_confirmar_senha, self.btn_confirmar_senha = self.criar_campo_senha(
+            "Repita sua senha",
+            "Confirmar senha",
+            "Repita a senha definida no campo anterior.",
+        )
+        self.txt_confirmar_senha.setMaximumWidth(380)
+        lbl_confirmar.setBuddy(self.txt_confirmar_senha)
+        linha_confirmacao = self.criar_linha_senha(
+            self.txt_confirmar_senha,
+            self.btn_confirmar_senha,
+        )
+        linha_confirmacao.setMaximumWidth(380)
+
+        self.btn_salvar_cadastro = BotaoAcessivel("Criar conta", container)
+        self.btn_salvar_cadastro.setObjectName("btn_entrar")
+        self.btn_salvar_cadastro.setAccessibleName("Criar conta")
+        self.btn_salvar_cadastro.setMaximumWidth(380)
+        self.btn_salvar_cadastro.clicked.connect(self.acao_cadastrar)
+
         self.btn_ir_login = BotaoAcessivel("Já tenho conta? Entrar", container)
         self.btn_ir_login.setObjectName("btn_link")
         self.btn_ir_login.setAccessibleName("Ir para tela de login")
         self.btn_ir_login.setCursor(Qt.PointingHandCursor)
         self.btn_ir_login.clicked.connect(self.criar_tela_login)
-        layout.addWidget(self.btn_ir_login, alignment=Qt.AlignCenter)
+
+        self.lbl_status_cadastro = QLabel("", container)
+        self.lbl_status_cadastro.setObjectName("status_msg")
+        self.lbl_status_cadastro.setAlignment(Qt.AlignCenter)
+        self.lbl_status_cadastro.setWordWrap(True)
+        self.lbl_status_cadastro.setMinimumHeight(44)
+        self.lbl_status_cadastro.setMaximumWidth(380)
+
+        for widget in (
+            lbl_titulo,
+            lbl_descricao,
+            lbl_email,
+            self.txt_n_email,
+            lbl_senha,
+            self.linha_senha,
+            lbl_requisito,
+            lbl_confirmar,
+            linha_confirmacao,
+            self.btn_salvar_cadastro,
+        ):
+            formulario.addWidget(widget)
+
+        formulario.addWidget(self.btn_ir_login, alignment=Qt.AlignCenter)
+        formulario.addWidget(self.lbl_status_cadastro, alignment=Qt.AlignCenter)
+        self.card_layout.addWidget(container, alignment=Qt.AlignCenter)
+
         self.tela_atual = "cadastro"
-        self.botao_acao_atual = btn_salvar
-        self.botao_voltar_atual = btn_voltar
-        self.atualizar_dimensoes_responsivas()
+        self.botao_acao_atual = self.btn_salvar_cadastro
+        self.botao_voltar_atual = self.btn_ir_login
+        self.atualizar_layout_responsivo()
         self.configurar_navegacao(
-            [self.txt_n_email, self.txt_n_senha, self.btn_mostrar_nova_senha, confirmar],
-            [btn_salvar, btn_voltar, self.btn_ir_login],
+            [
+                self.txt_n_email,
+                self.txt_n_senha,
+                self.btn_mostrar_nova_senha,
+                self.txt_confirmar_senha,
+                self.btn_confirmar_senha,
+            ],
+            [self.btn_salvar_cadastro, self.btn_ir_login],
         )
     def acao_cadastrar(self):
+        if self._cadastro_em_andamento:
+            return
+
         email = normalizar_email(self.txt_n_email.text())
         senha = self.txt_n_senha.text().strip()
         confirmacao = self.txt_confirmar_senha.text().strip()
-        if not email or not senha:
+        if not email or not senha or not confirmacao:
             self.anunciar_status(self.lbl_status_cadastro, "Preencha todos os campos.")
+            return
+        if not email_valido(email):
+            self.anunciar_status(self.lbl_status_cadastro, "Informe um e-mail válido.")
+            self.txt_n_email.setFocus()
             return
         if senha != confirmacao:
             self.anunciar_status(self.lbl_status_cadastro, "As senhas não coincidem.")
@@ -604,13 +684,52 @@ class LoginScreen(QWidget):
             self.txt_n_senha.setFocus()
             return
            
+        self._cadastro_em_andamento = True
+        self.btn_salvar_cadastro.setEnabled(False)
+        self.btn_salvar_cadastro.setText("Criando conta...")
+
         try:
+            existente = (
+                self.supabase.table("usuarios")
+                .select("id")
+                .eq("email", email)
+                .limit(1)
+                .execute()
+            )
+
+            if existente.data:
+                self.anunciar_status(
+                    self.lbl_status_cadastro,
+                    "Já existe uma conta cadastrada com este e-mail.",
+                )
+                self.txt_n_email.setFocus()
+                return
+
             hash_s = bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             self.supabase.table("usuarios").insert({"email": email, "senha_hash": hash_s}).execute()
+            self._mensagem_login_pendente = (
+                "Conta criada com sucesso. Digite sua senha para entrar."
+            )
+            self._email_login_pendente = email
             self.criar_tela_login()
         except Exception as e:
             print(f"DEBUG CADASTRO: {e}")
-            self.anunciar_status(self.lbl_status_cadastro, "Erro de conexão.")
+            erro_texto = str(e).lower()
+            if "duplicate" in erro_texto or "unique" in erro_texto or "23505" in erro_texto:
+                mensagem = "Já existe uma conta cadastrada com este e-mail."
+                self.txt_n_email.setFocus()
+            else:
+                mensagem = "Não foi possível criar a conta. Verifique a conexão e tente novamente."
+            self.anunciar_status(self.lbl_status_cadastro, mensagem)
+        finally:
+            self._cadastro_em_andamento = False
+            if hasattr(self, "btn_salvar_cadastro"):
+                try:
+                    self.btn_salvar_cadastro.setEnabled(True)
+                    self.btn_salvar_cadastro.setText("Criar conta")
+                except RuntimeError:
+                    # A tela de cadastro já foi substituída após o sucesso.
+                    pass
 
     def criar_tela_recuperacao(self):
         self.limpar_card()

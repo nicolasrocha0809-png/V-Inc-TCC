@@ -66,12 +66,16 @@ class PrefsManager:
 
     def salvar(self, preferencias):
         """Salva várias preferências e sincroniza apenas uma vez."""
+        atualizacoes = []
+
         for chave, valor in preferencias.items():
             if chave not in self.MAPA_PREFERENCIAS:
                 raise ValueError(f"Preferência desconhecida: {chave}")
 
             categoria, nome = self.MAPA_PREFERENCIAS[chave]
-            settings.set(categoria, nome, valor)
+            atualizacoes.append((categoria, nome, valor))
+
+        settings.set_many(atualizacoes)
 
         return self._sincronizar_supabase()
 
