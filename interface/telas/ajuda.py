@@ -10,6 +10,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from interface.acessibilidade import anunciar
+
 
 FAQS = (
     (
@@ -250,13 +252,16 @@ class AjudaScreen(QWidget):
         btn_copiar = QPushButton("Copiar e-mail")
         btn_copiar.setObjectName("botao_copiar_suporte")
         btn_copiar.setCursor(Qt.PointingHandCursor)
-        btn_copiar.clicked.connect(
-            lambda: QApplication.clipboard().setText("vinc.suporte@gmail.com")
-        )
+        btn_copiar.clicked.connect(lambda: self._copiar_email(btn_copiar))
 
         layout.addLayout(textos, 1)
         layout.addWidget(btn_copiar, alignment=Qt.AlignVCenter)
         return card
+
+    @staticmethod
+    def _copiar_email(botao):
+        QApplication.clipboard().setText("vinc.suporte@gmail.com")
+        anunciar(botao, "E-mail de suporte copiado.")
 
     def _mudar_tela(self, indice):
         janela = self.window()

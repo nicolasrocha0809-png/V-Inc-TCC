@@ -196,8 +196,36 @@ QWidget {
 }
 
 #ordem_historico {
-    min-width: 180px;
+    min-width: 200px;
     padding-right: 38px;
+}
+
+#scroll_inicio {
+    border: none;
+}
+
+#scroll_inicio QScrollBar:vertical {
+    width: 10px;
+    margin: 6px 2px;
+    border: none;
+    background: transparent;
+}
+
+#scroll_inicio QScrollBar::handle:vertical {
+    min-height: 36px;
+    border-radius: 4px;
+}
+
+#scroll_inicio QScrollBar::add-line:vertical,
+#scroll_inicio QScrollBar::sub-line:vertical {
+    height: 0;
+    border: none;
+    background: transparent;
+}
+
+#scroll_inicio QScrollBar::add-page:vertical,
+#scroll_inicio QScrollBar::sub-page:vertical {
+    background: transparent;
 }
 
 #ordem_historico::drop-down {
@@ -511,6 +539,18 @@ QPushButton {
     border: none;
 }
 
+QPushButton:focus,
+QComboBox:focus,
+QLineEdit:focus,
+QToolButton:focus {
+    border-width: 3px;
+    border-style: solid;
+}
+
+QSlider:focus::handle:horizontal {
+    border-width: 3px;
+}
+
 #btn_secundario {
     background-color: transparent;
     border: 1px solid #475569;
@@ -747,7 +787,7 @@ QToolButton:focus {
 }
 
 #status_msg {
-    min-height: 18px;
+    min-height: 44px;
     font-size: 12px;
 }
 

@@ -63,4 +63,13 @@ class ConfigManager:
         self.settings[category][key] = value
         self.save_settings()
 
+    def set_many(self, updates):
+        """Atualiza várias preferências e grava o arquivo uma única vez."""
+        for category, key, value in updates:
+            if category not in self.settings:
+                self.settings[category] = {}
+            self.settings[category][key] = value
+
+        self.save_settings()
+
 settings = ConfigManager()

@@ -4,6 +4,7 @@ from PySide6.QtCore import (
     QAbstractAnimation,
     QEasingCurve,
     QPropertyAnimation,
+    QTimer,
     Qt,
 )
 from PySide6.QtWidgets import (
@@ -20,6 +21,7 @@ from PySide6.QtWidgets import (
 )
 
 from config import settings
+from interface.acessibilidade import atualizar_status
 
 
 class ScrollConta(QScrollArea):
@@ -76,6 +78,7 @@ class ContaScreen(QWidget):
         self.user_id = user_id
         self.email = email or settings.get("usuario", "email_usuario_atual")
         self.callback_logout = callback_logout
+        self._alterando_senha = False
 
         self.setObjectName("pagina_conta")
 
@@ -292,6 +295,9 @@ class ContaScreen(QWidget):
             self.callback_logout()
 
     def alterar_senha(self):
+        if self._alterando_senha:
+            return
+
         senha_atual = self.txt_senha_atual.text()
         nova_senha = self.txt_nova_senha.text()
         confirmacao = self.txt_confirmar_senha.text()
@@ -318,6 +324,7 @@ class ContaScreen(QWidget):
             )
             return
 
+        self._alterando_senha = True
         self.btn_alterar_senha.setEnabled(False)
         self.btn_alterar_senha.setText("Salvando...")
 
@@ -353,8 +360,12 @@ class ContaScreen(QWidget):
             )
 
         finally:
-            self.btn_alterar_senha.setEnabled(True)
-            self.btn_alterar_senha.setText("Salvar nova senha")
+            QTimer.singleShot(700, self._liberar_alteracao_senha)
+
+    def _liberar_alteracao_senha(self):
+        self._alterando_senha = False
+        self.btn_alterar_senha.setEnabled(True)
+        self.btn_alterar_senha.setText("Salvar nova senha")
 
     def excluir_conta(self):
         senha = self.txt_senha_exclusao.text()
@@ -456,13 +467,13 @@ class ContaScreen(QWidget):
         self.lbl_status_senha.setProperty("erro", erro)
         self.lbl_status_senha.style().unpolish(self.lbl_status_senha)
         self.lbl_status_senha.style().polish(self.lbl_status_senha)
-        self.lbl_status_senha.setText(mensagem)
+        atualizar_status(self.lbl_status_senha, mensagem, erro=erro)
 
     def _mostrar_status_exclusao(self, mensagem, erro=False):
         self.lbl_status_exclusao.setProperty("erro", erro)
         self.lbl_status_exclusao.style().unpolish(self.lbl_status_exclusao)
         self.lbl_status_exclusao.style().polish(self.lbl_status_exclusao)
-        self.lbl_status_exclusao.setText(mensagem)
+        atualizar_status(self.lbl_status_exclusao, mensagem, erro=erro)
 
     def _confirmar(self, titulo, mensagem, texto_confirmar, perigoso=False):
         caixa = QMessageBox(self)

@@ -1,14 +1,22 @@
 import os
 import sys
 
-from PySide6.QtCore import QProcess, Qt
+from PySide6.QtCore import (
+    QAbstractAnimation,
+    QEasingCurve,
+    QProcess,
+    QPropertyAnimation,
+    Qt,
+)
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QComboBox,
     QFrame,
     QHBoxLayout,
     QLabel,
+    QLayout,
     QPushButton,
+    QScrollArea,
     QSizePolicy,
     QVBoxLayout,
     QWidget,
@@ -16,6 +24,46 @@ from PySide6.QtWidgets import (
 
 from config import settings
 from interface.audio_devices import listar_dispositivos, nomes_com_padrao
+
+
+class ScrollInicio(QScrollArea):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._destino_scroll = 0
+        self._animacao_scroll = QPropertyAnimation(
+            self.verticalScrollBar(),
+            b"value",
+            self,
+        )
+        self._animacao_scroll.setDuration(180)
+        self._animacao_scroll.setEasingCurve(QEasingCurve.OutCubic)
+        self.verticalScrollBar().setSingleStep(12)
+
+    def wheelEvent(self, event):
+        delta = event.angleDelta().y()
+
+        if not delta:
+            super().wheelEvent(event)
+            return
+
+        barra = self.verticalScrollBar()
+        deslocamento = int(-(delta / 120) * 96)
+        destino_base = (
+            self._destino_scroll
+            if self._animacao_scroll.state()
+            == QAbstractAnimation.State.Running
+            else barra.value()
+        )
+        self._destino_scroll = max(
+            barra.minimum(),
+            min(barra.maximum(), destino_base + deslocamento),
+        )
+
+        self._animacao_scroll.stop()
+        self._animacao_scroll.setStartValue(barra.value())
+        self._animacao_scroll.setEndValue(self._destino_scroll)
+        self._animacao_scroll.start()
+        event.accept()
 
 
 class InicioScreen(QWidget):
@@ -31,17 +79,24 @@ class InicioScreen(QWidget):
         self.setObjectName("pagina_inicio")
 
         self.layout_principal = QVBoxLayout(self)
-        self.layout_principal.setContentsMargins(40, 32, 40, 32)
+        self.layout_principal.setContentsMargins(0, 0, 0, 0)
         self.layout_principal.setSpacing(0)
 
-        # ---------- Conteúdo central ----------
+        self.scroll = ScrollInicio()
+        self.scroll.setObjectName("scroll_inicio")
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
         self.content = QFrame()
         self.content.setObjectName("conteudo_inicio")
-        self.layout_principal.addWidget(self.content, 1)
+        self.scroll.setWidget(self.content)
+        self.layout_principal.addWidget(self.scroll)
 
         self.layout_content = QVBoxLayout(self.content)
+        self.layout_content.setContentsMargins(40, 32, 40, 32)
         self.layout_content.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
         self.layout_content.setSpacing(18)
+        self.layout_content.setSizeConstraint(QLayout.SetMinimumSize)
         self.layout_content.addSpacing(16)
 
         # Botão circular do microfone
@@ -87,6 +142,7 @@ class InicioScreen(QWidget):
         card = QFrame()
         card.setObjectName("card_audio_inicio")
         card.setMinimumWidth(560)
+        card.setMinimumHeight(260)
         card.setMaximumWidth(640)
 
         layout_card = QVBoxLayout(card)

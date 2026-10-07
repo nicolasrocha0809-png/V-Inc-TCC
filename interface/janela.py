@@ -1,4 +1,5 @@
 from PySide6.QtCore import QTimer, Qt
+from PySide6.QtGui import QKeyEvent
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -20,6 +21,19 @@ from interface.telas.historico import HistoricoScreen
 from interface.telas.configuracoes import ConfiguracoesScreen
 from interface.telas.conta import ContaScreen
 from interface.telas.ajuda import AjudaScreen
+from interface.acessibilidade import anunciar
+
+
+class BotaoNavegacao(QPushButton):
+    """Botão lateral acionável de forma equivalente por Enter ou Espaço."""
+
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+            self.click()
+            event.accept()
+            return
+
+        super().keyPressEvent(event)
 
 
 class JanelaPrincipal(QMainWindow):
@@ -29,6 +43,7 @@ class JanelaPrincipal(QMainWindow):
         self.current_user_id = None
         
         self.setWindowTitle("V.INC — Voz Inclusiva")
+        self.setWindowIcon(QApplication.windowIcon())
         self.setMinimumSize(900, 560)
         self._definir_tamanho_inicial()
         self.central_widget = QWidget()
@@ -97,7 +112,7 @@ class JanelaPrincipal(QMainWindow):
         self.layout_sidebar.addWidget(divisor)
         self.layout_sidebar.addSpacing(8)
 
-        self.btn_ajuda = QPushButton("Ajuda e suporte")
+        self.btn_ajuda = BotaoNavegacao("Ajuda e suporte")
         self.btn_ajuda.setObjectName("ajuda_btn")
         self.btn_ajuda.setCheckable(True)
         self.btn_ajuda.setCursor(Qt.PointingHandCursor)
@@ -145,7 +160,7 @@ class JanelaPrincipal(QMainWindow):
         self.move(geometria.topLeft())
 
     def _criar_botao_menu(self, texto, indice):
-        botao = QPushButton(texto)
+        botao = BotaoNavegacao(texto)
         botao.setObjectName("menu_btn")
         botao.setCheckable(True)
         botao.setCursor(Qt.PointingHandCursor)
@@ -161,6 +176,19 @@ class JanelaPrincipal(QMainWindow):
             botao.setChecked(indice == index)
 
         self.btn_ajuda.setChecked(index == 7)
+
+        nomes_telas = {
+            0: "Login",
+            1: "Carregamento",
+            2: "Início",
+            3: "Comandos",
+            4: "Histórico",
+            5: "Configurações",
+            6: "Minha conta",
+            7: "Ajuda e suporte",
+        }
+        tela_atual = self.stack.currentWidget()
+        anunciar(tela_atual, f"Tela {nomes_telas.get(index, 'atual')} aberta.")
 
     def _restaurar_sessao(self):
         sessao_ativa = settings.get("usuario", "sessao_ativa")
