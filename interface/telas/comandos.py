@@ -23,6 +23,12 @@ COMANDOS = (
         'Exemplo: "Descreva a imagem montanhas."',
     ),
     (
+        "DOC",
+        "Abrir documentos",
+        "Localize documentos PDF/TXT e abra no programa padrão do Windows.",
+        'Exemplo: "Abra o PDF trabalho na pasta Documentos."',
+    ),
+    (
         "WEB",
         "Pesquisar na internet",
         "Abra sites ou faça pesquisas sobre o assunto solicitado.",

@@ -15,6 +15,7 @@ AÇÕES_PERMITIDAS = {
     "abrir_site",
     "abrir_app",
     "ler_imagem",
+    "abrir_arquivo",
     "pesquisar_video",
     "responder",
     "calcular",
@@ -33,6 +34,7 @@ Use null quando um campo não se aplicar. Nunca omita as chaves.
    - abrir_site
    - abrir_app
    - ler_imagem
+   - abrir_arquivo
    - pesquisar_video
    - responder
    - calcular
@@ -43,6 +45,7 @@ Use null quando um campo não se aplicar. Nunca omita as chaves.
 - "abrir_site": use "alvo" para descrever o objetivo e "site" para o domínio ou URL; "pasta" deve ser null.
 - "abrir_app": use "alvo" para o nome do aplicativo; "pasta" e "site" devem ser null.
 - "ler_imagem": use "alvo" para o nome da imagem, "pasta" para a pasta informada pelo usuário ou null e "site": null.
+- "abrir_arquivo": use "alvo" para o nome do PDF/TXT, "pasta" para a pasta informada pelo usuário ou null e "site": null.
 - "pesquisar_video": use "alvo" para o assunto da busca e "site" para o serviço, quando definido; "pasta" deve ser null.
 - "texto_resposta" deve sempre existir e ser uma mensagem curta em português.
 
@@ -67,6 +70,14 @@ Use null quando um campo não se aplicar. Nunca omita as chaves.
 - Se o usuário não especificar a imagem, peça o nome e defina "confirmacao_necessaria": true.
 - Exemplos: "leia a imagem trabalho", "descreva a foto cachorro" e "analise a imagem gráfico".
 - Exemplo com pasta: "descreva a imagem montanhas que está na pasta imagens" deve usar "alvo": "montanhas" e "pasta": "imagens".
+
+6-A. Regras para "abrir_arquivo":
+- Use esta ação quando o usuário pedir para abrir/visualizar um documento PDF ou TXT.
+- Não leia o conteúdo do documento em voz alta: o usuário utiliza seu leitor de tela.
+- Informe somente o nome do arquivo em "alvo", e a pasta em "pasta" quando citada.
+- Nunca invente caminhos. Se faltar o nome, peça esclarecimento.
+- Exemplos: "abra o arquivo trabalho.pdf", "abra o PDF contrato", "abra o TXT notas na pasta Documentos".
+- Para programas use "abrir_app"; para imagens use "ler_imagem".
 
 7. Regras para "pesquisar_video":
 - Use esta ação para pedidos de buscar, assistir, procurar ou abrir vídeos, lives, canais ou perfis de criadores.
@@ -119,6 +130,12 @@ Resposta: {"acao": "abrir_site", "alvo": "sobre Napoleão Bonaparte", "site": "g
 
 Usuário: "Quanto é dois mais dois?"
 Resposta: {"acao": "calcular", "alvo": "2 + 2", "pasta": null, "confirmacao_necessaria": false, "texto_resposta": "Calculando...", "site": null}
+
+Usuário: "Abra o arquivo trabalho.pdf"
+Resposta: {"acao": "abrir_arquivo", "alvo": "trabalho.pdf", "pasta": null, "confirmacao_necessaria": false, "texto_resposta": "Abrindo o documento.", "site": null}
+
+Usuário: "Abra o TXT anotações na pasta Documentos"
+Resposta: {"acao": "abrir_arquivo", "alvo": "anotações", "pasta": "Documentos", "confirmacao_necessaria": false, "texto_resposta": "Abrindo o documento.", "site": null}
 
 Usuário: "Quero abrir o Word"
 Resposta: {"acao": "abrir_app", "alvo": "Word", "pasta": null, "confirmacao_necessaria": false, "texto_resposta": "Abrindo o aplicativo Word.", "site": null}
@@ -216,7 +233,7 @@ def pensar(texto_falado, historico=None):
     pasta = dicionario["pasta"]
     if pasta is not None and (not isinstance(pasta, str) or not pasta.strip()):
         raise ValueError("O campo pasta precisa ser texto ou null")
-    if acao != "ler_imagem" and pasta is not None:
+    if acao not in {"ler_imagem", "abrir_arquivo"} and pasta is not None:
         raise ValueError(f"A ação {acao} não deve conter pasta")
 
     return dicionario

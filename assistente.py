@@ -29,6 +29,7 @@ from servicos.voz import ouvir, falar, tocar_sinal
 from servicos.wakeword import aguardar_wakeword
 from servicos.aplicativos import abrir_aplicativo
 from servicos.imagens import localizar_imagem, descrever_imagem
+from servicos.arquivos import localizar_arquivo, abrir_arquivo
 import webbrowser
 
 
@@ -823,6 +824,64 @@ def resolver_soletracao(texto_falado, dicionario):
 
     return dicionario, nome_escolhido
 
+def abrir_documento_por_voz(alvo, pasta=None):
+    """Abre PDF/TXT no programa padrão, sem narrar o documento."""
+    if pasta:
+        mensagem = f"Procurando o documento {alvo} na pasta {pasta}."
+    else:
+        mensagem = f"Procurando o documento {alvo}."
+    print(mensagem)
+    falar(mensagem)
+
+    resultado = localizar_arquivo(alvo, pasta_solicitada=pasta)
+    if resultado["status"] == "nao_encontrado":
+        falar(
+            f"Não encontrei o documento {alvo} em Downloads, "
+            "Documentos ou Área de Trabalho."
+        )
+        return
+
+    if resultado["status"] == "ambiguo":
+        opcoes = resultado["opcoes"][:5]
+        opcoes_texto = "; ".join(
+            f"{numero + 1}: {arquivo.name}, na pasta {arquivo.parent.name}"
+            for numero, arquivo in enumerate(opcoes)
+        )
+        falar(f"Encontrei mais de um arquivo. {opcoes_texto}. Qual deseja abrir?")
+        escolha = ouvir()
+        if not escolha:
+            falar("Não consegui ouvir sua escolha.")
+            return
+
+        palavras = set(normalizar_texto(escolha).split())
+        ordinais = {
+            "1": 0, "primeiro": 0, "primeira": 0,
+            "2": 1, "segundo": 1, "segunda": 1,
+            "3": 2, "terceiro": 2, "terceira": 2,
+            "4": 3, "quarto": 3, "quarta": 3,
+            "5": 4, "quinto": 4, "quinta": 4,
+        }
+        indice = next(
+            (i for palavra, i in ordinais.items() if palavra in palavras),
+            None,
+        )
+        if indice is None or indice >= len(opcoes):
+            falar("Não identifiquei a opção. Diga o número do documento.")
+            return
+        caminho = opcoes[indice]
+    else:
+        caminho = resultado["caminho"]
+
+    # A confirmação termina antes de o aplicativo/leitor de tela abrir.
+    falar(f"Abrindo o documento {caminho.name}.")
+    try:
+        abrir_arquivo(caminho)
+        print(f"Documento aberto: {caminho}")
+    except (OSError, ValueError) as erro:
+        print(f"Erro ao abrir documento: {erro}")
+        falar("Não consegui abrir o documento solicitado.")
+
+
 print("Iniciando o V-Inc...")
 tocar_sinal("iniciar")
 falar(
@@ -987,6 +1046,12 @@ while True:
 
                 print(fala)
                 falar(fala)
+
+            elif dicionario_resposta['acao'] == "abrir_arquivo":
+                abrir_documento_por_voz(
+                    dicionario_resposta['alvo'],
+                    dicionario_resposta.get('pasta'),
+                )
 
             elif dicionario_resposta['acao'] == "ler_imagem":
                 alvo = dicionario_resposta["alvo"]

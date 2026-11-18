@@ -10,6 +10,7 @@ comandos, pesquisa de vídeos, abertura de aplicativos e descrição de imagens.
 - Reconhecimento de voz usando Whisper pela API da Groq.
 - Síntese de voz com Edge TTS e fallback local com pyttsx3.
 - Abertura de aplicativos instalados e atalhos do Windows.
+- Abertura de PDF/TXT pelo aplicativo padrão, sem leitura pelo assistente.
 - Pesquisa de vídeos, canais e lives, com integração à YouTube Data API.
 - Descrição de imagens com cadeia de fallback entre serviços de visão.
 - Cache persistente para índice e descrições de imagens.
@@ -27,6 +28,7 @@ V-Inc-TCC/
 │   ├── cerebro.py
 │   ├── voz.py
 │   ├── aplicativos.py
+│   ├── arquivos.py
 │   └── imagens.py
 ├── interface/
 │   ├── telas/
@@ -35,6 +37,14 @@ V-Inc-TCC/
 │   └── assets/
 └── requirements.txt
 ```
+
+## Abertura de documentos
+
+- "Abra o PDF trabalho" — abre no programa padrão do Windows.
+- "Abra o TXT anotações na pasta Documentos" — restringe a busca à pasta indicada.
+- A busca considera as pastas Downloads, Documentos e Área de Trabalho.
+- Quando mais de um arquivo for encontrado, o assistente pede uma escolha por número.
+- O V.INC **não lê o conteúdo** do arquivo. O usuário pode utilizar NVDA ou Narrador.
 
 ## Como executar
 
