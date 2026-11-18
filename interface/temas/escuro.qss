@@ -534,3 +534,43 @@ QSlider#slider_configuracao[focoTeclado="true"]::handle:horizontal {
     color: #FFFFFF;
     border: 3px solid #FFFFFF;
 }
+
+
+/* Conversa em balões — estrutura compartilhada entre os temas. */
+#painel_conversa { border: 1px solid; border-radius: 16px; }
+#titulo_conversa { font-weight: 700; }
+#descricao_conversa { font-weight: 400; }
+#limpar_conversa {
+    border: 1px solid;
+    border-radius: 8px;
+    min-height: 28px;
+    padding: 4px 12px;
+}
+#scroll_conversa { border: none; }
+#scroll_conversa QScrollBar:vertical { width: 10px; border: none; }
+#scroll_conversa QScrollBar::handle:vertical { min-height: 30px; border-radius: 5px; }
+#scroll_conversa QScrollBar::add-line:vertical,
+#scroll_conversa QScrollBar::sub-line:vertical { height: 0; }
+#bolha_usuario, #bolha_vinc, #bolha_erro {
+    border: 1px solid;
+    border-radius: 14px;
+}
+#remetente_conversa { font-weight: 700; }
+#texto_conversa { font-weight: 400; }
+#conversa_vazia { padding: 22px; }
+
+#painel_conversa { background-color: #102A4C; border-color: #21456F; }
+#conteudo_conversa, #scroll_conversa { background-color: #102A4C; }
+#titulo_conversa { color: #F2F7FF; }
+#descricao_conversa, #conversa_vazia { color: #AFC3DC; }
+#limpar_conversa { background-color: #102A4C; border-color: #6F96C4; color: #F2F7FF; }
+#limpar_conversa:hover { background-color: #20539B; }
+#limpar_conversa:focus { border: 3px solid #FFFFFF; }
+#scroll_conversa QScrollBar:vertical { background-color: #102A4C; }
+#scroll_conversa QScrollBar::handle:vertical { background-color: #6F96C4; }
+#bolha_usuario { background-color: #20539B; border-color: #6F96C4; }
+#bolha_usuario #remetente_conversa, #bolha_usuario #texto_conversa { color: #FFFFFF; }
+#bolha_vinc { background-color: #193B5F; border-color: #52779E; }
+#bolha_vinc #remetente_conversa, #bolha_vinc #texto_conversa { color: #F2F7FF; }
+#bolha_erro { background-color: #50371C; border-color: #D4A45E; }
+#bolha_erro #remetente_conversa, #bolha_erro #texto_conversa { color: #FFF5E8; }

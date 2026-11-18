@@ -6,6 +6,7 @@ from PySide6.QtCore import (
     QEasingCurve,
     QProcess,
     QPropertyAnimation,
+    QTimer,
     Qt,
 )
 from PySide6.QtGui import QFont
@@ -24,6 +25,8 @@ from PySide6.QtWidgets import (
 
 from config import settings
 from interface.audio_devices import listar_dispositivos, nomes_com_padrao
+from interface.telas.conversa import ConversaWidget
+from servicos.eventos import interpretar_evento, PREFIXO_EVENTO
 
 
 class ScrollInicio(QScrollArea):
@@ -72,6 +75,8 @@ class InicioScreen(QWidget):
 
         self.processo_assistente = None
         self.assistente_ativo = False
+        self._buffer_saida = ""
+        self._conversa_exibida = False
 
         self.setup_ui()
 
@@ -121,6 +126,10 @@ class InicioScreen(QWidget):
 
         # Card de Áudio
         self.layout_content.addWidget(self._criar_card_audio(), alignment=Qt.AlignHCenter)
+
+        # Conversa da sessão (sem exibir logs de desenvolvimento)
+        self.conversa = ConversaWidget()
+        self.layout_content.addWidget(self.conversa, alignment=Qt.AlignHCenter)
 
     # ---------------------------------------------------------------
     def _criar_botao_mic(self):
@@ -238,6 +247,7 @@ class InicioScreen(QWidget):
             os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
             "assistente.py",
         )
+        self._buffer_saida = ""
         self.processo_assistente = QProcess(self)
         self.processo_assistente.setProcessChannelMode(QProcess.MergedChannels)
         self.processo_assistente.readyReadStandardOutput.connect(self._ler_saida_assistente)
@@ -269,12 +279,32 @@ class InicioScreen(QWidget):
 
         saida = bytes(self.processo_assistente.readAllStandardOutput()).decode(
             "utf-8", errors="replace"
-        ).strip()
+        )
 
         if not saida:
             return
 
-        print(saida)
+        # QProcess pode entregar pedaços incompletos. Só processamos linhas
+        # completas para não perder eventos JSON de uma mesma mensagem.
+        self._buffer_saida += saida
+        while "\n" in self._buffer_saida:
+            linha, self._buffer_saida = self._buffer_saida.split("\n", 1)
+            linha = linha.rstrip("\r")
+            if linha.startswith(PREFIXO_EVENTO):
+                evento = interpretar_evento(linha)
+                if evento:
+                    self.conversa.adicionar_mensagem(
+                        evento["tipo"], evento["texto"]
+                    )
+                    if not self._conversa_exibida:
+                        self._conversa_exibida = True
+                        QTimer.singleShot(
+                            0, lambda: self.scroll.ensureWidgetVisible(self.conversa, 16, 16)
+                        )
+                continue
+            # Apenas no terminal de execução da IDE, nunca na interface.
+            print(linha, flush=True)
+
         texto = saida.lower()
 
         if "encerrando" in texto:
@@ -309,6 +339,9 @@ class InicioScreen(QWidget):
     def _erro_assistente(self, erro):
         if erro == QProcess.FailedToStart:
             self.lbl_ouvindo.setText("Não foi possível iniciar o assistente")
+            self.conversa.adicionar_mensagem(
+                "erro", "Não consegui iniciar o assistente. Tente novamente."
+            )
             self.assistente_ativo = False
 
     def _atualizar_estado_controles(self):

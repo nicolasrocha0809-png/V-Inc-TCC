@@ -6,6 +6,7 @@ import struct
 import wave
 import winsound
 from dotenv import load_dotenv
+from servicos.eventos import formatar_evento
 import edge_tts as e_tts
 from groq import Groq
 import pygame as pg
@@ -163,6 +164,12 @@ def iniciar_mixer_configurado():
 
 
 def falar(texto):
+    # Só as falas destinadas ao usuário aparecem como mensagens na interface.
+    texto_normalizado = str(texto).strip().lower()
+    tipo = "erro" if texto_normalizado.startswith((
+        "não consegui", "não foi possível", "não encontrei", "houve um erro",
+    )) else "vinc"
+    print(formatar_evento(tipo, texto), flush=True)
     caminho_audio = "resposta.mp3"
 
     try:
@@ -203,6 +210,9 @@ def falar(texto):
             motor.runAndWait()
         except Exception as erro_local:
             print(f"Não foi possível reproduzir a fala: {erro_local}")
+            print(formatar_evento(
+                "erro", "Não consegui reproduzir a resposta em voz alta."
+            ), flush=True)
 
     finally:
         try:
@@ -264,6 +274,8 @@ def ouvir():
 
         texto = transcricao.text.strip()
         print(f"Você disse: {texto}")
+        if texto:
+            print(formatar_evento("usuario", texto), flush=True)
         return texto
 
     except sr.WaitTimeoutError:
