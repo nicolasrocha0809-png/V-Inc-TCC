@@ -1,0 +1,5 @@
+# Ferramentas usadas só para rodar os testes.
+# Instale junto com as dependências do app:
+#   pip install -r requirements.txt -r requirements-dev.txt
+pytest
+pytest-cov

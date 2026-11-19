@@ -34,5 +34,9 @@ config.json
 *.pyc
 .pytest_cache/
 
+# Relatórios de cobertura dos testes
+.coverage
+htmlcov/
+
 # Artefatos locais removidos do repositório
 teste_saida.mp3

@@ -1,0 +1,11 @@
+# Cobertura medida nos módulos que têm testes unitários.
+# Telas e voz dependem de interface gráfica, microfone e alto-falante:
+# elas seriam cobertas por testes de integração ou de ponta a ponta.
+[run]
+include =
+    */interface/prefs_manager.py
+omit =
+    */site-packages/*
+
+[report]
+show_missing = true
