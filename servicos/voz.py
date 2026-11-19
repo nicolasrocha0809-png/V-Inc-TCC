@@ -13,6 +13,7 @@ import pygame as pg
 import pyttsx3
 import speech_recognition as sr
 from config import settings 
+from servicos.preferencias import valor_ou_padrao
 from interface.audio_devices import definir_saida_padrao
 
 # Carrega os segredos do arquivo .env
@@ -77,7 +78,7 @@ def tocar_sinal(tipo="pronto"):
             iniciar_mixer_configurado()
             mixer_iniciado_aqui = True
 
-        valor_volume = int(settings.get("audio", "volume") or 80)
+        valor_volume = int(valor_ou_padrao(settings.get("audio", "volume"), 80))
         volume = max(0.0, min(1.0, valor_volume / 100.0))
 
         for frequencia, duracao in padrao:
@@ -176,7 +177,7 @@ def falar(texto):
         cfg_idioma = obter_configuracao_idioma()
         voz_atual = cfg_idioma["voz"]
 
-        valor_velocidade = int(settings.get("audio", "velocidade") or 80)
+        valor_velocidade = int(valor_ou_padrao(settings.get("audio", "velocidade"), 80))
         taxa_calculada = int((valor_velocidade - 50) * 1.5)
         rate_str = (
             f"+{taxa_calculada}%"
@@ -184,7 +185,7 @@ def falar(texto):
             else f"{taxa_calculada}%"
         )
 
-        valor_volume_slider = int(settings.get("audio", "volume") or 80)
+        valor_volume_slider = int(valor_ou_padrao(settings.get("audio", "volume"), 80))
         volume_decimal = max(0.0, min(1.0, valor_volume_slider / 100.0))
 
         async def gerar_audio():
