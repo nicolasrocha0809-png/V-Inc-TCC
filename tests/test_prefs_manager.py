@@ -221,3 +221,6 @@ class TestVolumeZero:
 
         # Verificar
         assert resultado["volume"] == 0
+
+
+# DEMO AO VIVO: cole aqui o teste da velocidade 0 (está no README).

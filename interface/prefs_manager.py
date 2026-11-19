@@ -38,6 +38,7 @@ class PrefsManager:
             "volume": valor_ou_padrao(
                 settings.get("audio", "volume"), self.PADROES["volume"]
             ),
+            # DEMO AO VIVO: aqui a velocidade 0 ainda vira 80
             "velocidade": settings.get("audio", "velocidade") or self.PADROES["velocidade"],
             "microfone": settings.get("audio", "microfone"),
             "saida": settings.get("audio", "saida"),
