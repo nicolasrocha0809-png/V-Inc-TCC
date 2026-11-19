@@ -4,6 +4,7 @@
 [run]
 include =
     */interface/prefs_manager.py
+    */servicos/preferencias.py
 omit =
     */site-packages/*
 

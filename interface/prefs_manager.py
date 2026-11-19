@@ -1,5 +1,6 @@
 from supabase import Client
 from config import settings
+from servicos.preferencias import valor_ou_padrao
 
 
 class PrefsManager:
@@ -15,19 +16,29 @@ class PrefsManager:
         "saida": ("audio", "saida"),
     }
 
+    # Valores usados quando a preferência ainda não foi salva
+    PADROES = {
+        "tema": "escuro",
+        "fonte": "12px",
+        "idioma": "pt_BR",
+        "volume": 80,
+        "velocidade": 80,
+    }
+
     def __init__(self, supabase: Client, user_id: str):
         self.supabase = supabase
         self.user_id = user_id
 
     def carregar(self):
         """Retorna as preferências em formato compatível com a tela antiga."""
-        volume = settings.get("audio", "volume")
         return {
-            "tema": settings.get("visual", "tema") or "escuro",
-            "fonte": settings.get("visual", "fonte") or "12px",
-            "idioma": settings.get("geral", "idioma") or "pt_BR",
-            "volume": 80 if volume is None else volume,
-            "velocidade": settings.get("audio", "velocidade") or 80,
+            "tema": settings.get("visual", "tema") or self.PADROES["tema"],
+            "fonte": settings.get("visual", "fonte") or self.PADROES["fonte"],
+            "idioma": settings.get("geral", "idioma") or self.PADROES["idioma"],
+            "volume": valor_ou_padrao(
+                settings.get("audio", "volume"), self.PADROES["volume"]
+            ),
+            "velocidade": settings.get("audio", "velocidade") or self.PADROES["velocidade"],
             "microfone": settings.get("audio", "microfone"),
             "saida": settings.get("audio", "saida"),
         }
@@ -89,11 +100,11 @@ class PrefsManager:
         try:
             dados_upsert = {
                 "user_id": self.user_id,
-                "tema": prefs.get("tema", "escuro"),
-                "fonte": prefs.get("fonte", "12px"),
-                "idioma": prefs.get("idioma", "pt_BR"),
-                "volume": int(prefs.get("volume", 80)),
-                "velocidade": int(prefs.get("velocidade", 80)),
+                "tema": prefs["tema"],
+                "fonte": prefs["fonte"],
+                "idioma": prefs["idioma"],
+                "volume": int(prefs["volume"]),
+                "velocidade": int(prefs["velocidade"]),
             }
             self.supabase.table("configuracoes").upsert(dados_upsert).execute()
             return True
