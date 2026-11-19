@@ -21,11 +21,12 @@ class PrefsManager:
 
     def carregar(self):
         """Retorna as preferências em formato compatível com a tela antiga."""
+        volume = settings.get("audio", "volume")
         return {
             "tema": settings.get("visual", "tema") or "escuro",
             "fonte": settings.get("visual", "fonte") or "12px",
             "idioma": settings.get("geral", "idioma") or "pt_BR",
-            "volume": settings.get("audio", "volume") or 80,
+            "volume": 80 if volume is None else volume,
             "velocidade": settings.get("audio", "velocidade") or 80,
             "microfone": settings.get("audio", "microfone"),
             "saida": settings.get("audio", "saida"),
