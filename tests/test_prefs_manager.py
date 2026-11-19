@@ -192,3 +192,32 @@ class TestComportamentoAtual:
         supabase.table.side_effect = Exception("sem internet")
 
         assert PrefsManager(supabase, user_id="u1").carregar_do_supabase() is None
+
+
+class TestVolumeZero:
+    """Bug encontrado por um teste de valor-limite: o volume 0 virava 80.
+
+    O código usava `settings.get("audio", "volume") or 80`. No Python, o 0 conta
+    como "falso", então `0 or 80` dá 80: o volume no mudo era trocado pelo padrão.
+    """
+
+    def test_volume_zero_chega_como_zero_ao_supabase(self, supabase, settings_fake):
+        # Preparar
+        prefs = PrefsManager(supabase, user_id="u1")
+
+        # Agir: o usuário arrasta o slider de volume até o 0
+        prefs.salvar({"volume": 0})
+
+        # Verificar (MOCK): o que foi enviado ao banco
+        assert dados_enviados(supabase)["volume"] == 0
+
+    def test_volume_zero_vindo_do_banco_continua_zero(self, settings_fake):
+        # Preparar (STUB): no banco, o volume desta conta é 0
+        supabase = criar_stub_supabase([{"user_id": "u1", "volume": 0}])
+        prefs = PrefsManager(supabase, user_id="u1")
+
+        # Agir
+        resultado = prefs.carregar_do_supabase()
+
+        # Verificar
+        assert resultado["volume"] == 0
